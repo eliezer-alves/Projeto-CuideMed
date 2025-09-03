@@ -1,18 +1,25 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{% url 'index' %}">Sistema Hospitalar</a>
+    <!-- Logo -->
+    <a class="navbar-brand d-flex align-items-center fw-bold" href="{% url 'index' %}">
+      <i class="bi bi-hospital me-2"></i> Sistema Hospitalar
+    </a>
+
+    <!-- Botão para telas menores -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
+
+    <!-- Links -->
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="{% url 'pacientes' %}">Pacientes</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'medicos' %}">Médicos</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'enfermeiros' %}">Enfermeiros</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'prescricoes' %}">Prescrições</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'medicamentos' %}">Medicamentos</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'administracoes' %}">Administração</a></li>
-        <li class="nav-item"><a class="nav-link" href="{% url 'alertas' %}">Alertas</a></li>        
+      <ul class="navbar-nav ms-auto text-center">
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'pacientes' %}"><i class="bi bi-people-fill me-1"></i>Pacientes</a></li>
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'medicos' %}"><i class="bi bi-person-badge-fill me-1"></i>Médicos</a></li>
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'enfermeiros' %}"><i class="bi bi-heart-pulse-fill me-1"></i>Enfermeiros</a></li>
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'prescricoes' %}"><i class="bi bi-clipboard2-plus-fill me-1"></i>Prescrições</a></li>
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'medicamentos' %}"><i class="bi bi-capsule-pill me-1"></i>Medicamentos</a></li>
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'administracoes' %}"><i class="bi bi-check2-square me-1"></i>Administração</a></li>
+        <li class="nav-item"><a class="nav-link px-3" href="{% url 'alertas' %}"><i class="bi bi-bell-fill me-1"></i>Alertas</a></li>
       </ul>
     </div>
   </div>
