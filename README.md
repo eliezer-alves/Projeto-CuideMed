@@ -1,0 +1,5 @@
+Projeto – Sistema de Controle de Medicação Hospitalar (CuideMed)
+O CuideMed é um sistema web responsivo desenvolvido para o controle seguro e eficiente da administração de medicamentos em hospitais, com foco na segurança do paciente e na otimização do trabalho dos profissionais de saúde.
+O projeto tem como objetivo solucionar problemas recorrentes no ambiente hospitalar, como erros de medicação, atrasos na administração de doses e a falta de integração das informações clínicas dos pacientes.
+O sistema é direcionado a médicos, enfermeiros, farmacêuticos e gestores hospitalares, oferecendo dashboards personalizados e intuitivos, adaptados às necessidades de cada função. A interface será moderna, acessível e funcional, com recursos como alertas automáticos, notificações em tempo real e relatórios gerenciais para auditoria e tomada de decisão.
+Com essa proposta, o CuideMed busca reduzir falhas humanas, aumentar a eficiência dos processos hospitalares e elevar o padrão de qualidade do atendimento, proporcionando benefícios diretos tanto para os pacientes quanto para os profissionais e instituições de saúde
