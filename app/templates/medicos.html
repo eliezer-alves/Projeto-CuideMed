@@ -1,24 +1,38 @@
 {% extends 'base.html' %}
-{% block title %}Médicos{% endblock %}
+
+{% block title %}Médicos - CuideMed{% endblock %}
 
 {% block content %}
-  <h2>Lista de Médicos</h2>
-  <table class="table table-bordered">
-    <thead>
-      <tr>
-        <th>ID</th><th>Nome</th><th>Especialidade</th><th>Email</th><th>CPF</th>
-      </tr>
+<h1 class="mb-4">Médicos</h1>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Gerenciar Médicos</h5>
+        <p class="card-text">Cadastro e gerenciamento dos médicos da instituição.</p>
+        <a href="#" class="btn btn-primary"><i class="bi bi-person-badge"></i> Adicionar Médico</a>
+    </div>
+</div>
+
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-success">
+        <tr>
+            <th>#</th>
+            <th>Nome</th>
+            <th>Especialidade</th>
+            <th>Ações</th>
+        </tr>
     </thead>
     <tbody>
-      {% for medico in medicos %}
-      <tr>
-        <td>{{ medico.id }}</td>
-        <td>{{ medico.nome }}</td>
-        <td>{{ medico.especialidade }}</td>
-        <td>{{ medico.email }}</td>
-        <td>{{ medico.cpf }}</td>
-      </tr>
-      {% endfor %}
+        {% for medico in medicos %}
+        <tr>
+            <td>{{ medico.id_medico }}</td>
+            <td>{{ medico.nome }}</td>
+            <td>{{ medico.especialidade }}</td>
+            <td>
+                <a href="#" class="btn btn-sm btn-warning"><i class="bi bi-pencil-square"></i></a>
+                <a href="#" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
     </tbody>
-  </table>
+</table>
 {% endblock %}

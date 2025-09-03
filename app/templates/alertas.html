@@ -1,24 +1,36 @@
 {% extends 'base.html' %}
-{% block title %}Alertas{% endblock %}
+
+{% block title %}Alertas - CuideMed{% endblock %}
 
 {% block content %}
-  <h2>Alertas de Prescrição</h2>
-  <table class="table table-hover">
-    <thead>
-      <tr>
-        <th>ID</th><th>Mensagem</th><th>Data/Hora</th><th>Tipo</th><th>Medicamento</th>
-      </tr>
+<h1 class="mb-4">Alertas</h1>
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <h5 class="card-title">Alertas e Notificações</h5>
+        <p class="card-text">Alertar sobre horários de administração ou interações medicamentosas.</p>
+    </div>
+</div>
+
+<table class="table table-striped table-hover shadow-sm">
+    <thead class="table-danger">
+        <tr>
+            <th>#</th>
+            <th>Paciente</th>
+            <th>Tipo de Alerta</th>
+            <th>Mensagem</th>
+            <th>Data/Hora</th>
+        </tr>
     </thead>
     <tbody>
-      {% for alerta in alertas %}
-      <tr>
-        <td>{{ alerta.id }}</td>
-        <td>{{ alerta.mensagem }}</td>
-        <td>{{ alerta.data_hora }}</td>
-        <td>{{ alerta.tipo }}</td>
-        <td>{{ alerta.prescricao_item.medicamento.nome }}</td>
-      </tr>
-      {% endfor %}
+        {% for alerta in alertas %}
+        <tr>
+            <td>{{ alerta.id_alerta }}</td>
+            <td>{{ alerta.paciente.nome }}</td>
+            <td>{{ alerta.tipo_alerta }}</td>
+            <td>{{ alerta.mensagem }}</td>
+            <td>{{ alerta.data_hora }}</td>
+        </tr>
+        {% endfor %}
     </tbody>
-  </table>
+</table>
 {% endblock %}
