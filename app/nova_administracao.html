@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Nova Administração de Medicamento</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_prescricao_item" class="form-label">Prescrição Item</label>
+            {{ form.prescricao_item|as_widget(attrs={'class': 'form-select'}) }}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_enfermeiro" class="form-label">Enfermeiro</label>
+            {{ form.enfermeiro|as_widget(attrs={'class': 'form-select'}) }}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_status" class="form-label">Status</label>
+            {{ form.status|as_widget(attrs={'class': 'form-select'}) }}
+        </div>
+
+        <div class="mb-3">
+            <label for="id_observacoes" class="form-label">Observações</label>
+            {{ form.observacoes|as_widget(attrs={'class': 'form-control', 'rows': 3}) }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{% url 'administracoes' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

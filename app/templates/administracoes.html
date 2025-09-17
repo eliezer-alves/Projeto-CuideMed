@@ -3,33 +3,60 @@
 {% block title %}Administração - CuideMed{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Administração de Medicação</h1>
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h5 class="card-title">Registrar Administração</h5>
-        <p class="card-text">Registrar quando e por quem a medicação foi administrada.</p>
-        <a href="#" class="btn btn-primary"><i class="bi bi-check-circle"></i> Nova Administração</a>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Administração de Medicação</h1>
+        <a href="{% url 'nova_administracao' %}" class="btn btn-success btn-lg shadow-sm">
+            <i class="bi bi-plus-circle"></i> Nova Administração
+        </a>
+    </div>
+
+    <!-- Card explicativo -->
+    <div class="card shadow-sm mb-4 border-primary">
+        <div class="card-body">
+            <h5 class="card-title text-primary"><i class="bi bi-info-circle"></i> Como Registrar</h5>
+            <p class="card-text">
+                Aqui você pode registrar a administração de medicamentos para cada paciente. 
+                Certifique-se de selecionar a prescrição correta e o profissional responsável.
+            </p>
+        </div>
+    </div>
+
+    <!-- Tabela de administrações -->
+    <div class="table-responsive shadow-sm">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Prescrição</th>
+                    <th scope="col">Profissional</th>
+                    <th scope="col">Data/Hora</th>
+                    <th scope="col">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for admin in administracoes %}
+                <tr>
+                    <th scope="row">{{ admin.id_admin }}</th>
+                    <td>Prescrição #{{ admin.prescricao.id_prescricao }}</td>
+                    <td>{{ admin.usuario.nome }}</td>
+                    <td>{{ admin.data_hora|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'editar_administracao' admin.id_admin %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-pencil-square"></i> Editar
+                        </a>
+                        <a href="{% url 'deletar_administracao' admin.id_admin %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Excluir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted">Nenhuma administração registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-
-<table class="table table-striped table-hover shadow-sm">
-    <thead class="table-dark">
-        <tr>
-            <th>#</th>
-            <th>Prescrição</th>
-            <th>Profissional</th>
-            <th>Data/Hora</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for admin in administracoes %}
-        <tr>
-            <td>{{ admin.id_admin }}</td>
-            <td>{{ admin.prescricao.id_prescricao }}</td>
-            <td>{{ admin.usuario.nome }}</td>
-            <td>{{ admin.data_hora }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 {% endblock %}

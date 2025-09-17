@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Administração{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4 text-danger">Excluir Administração</h1>
+    <p>Tem certeza que deseja excluir a administração da prescrição #{{ object.prescricao.id_prescricao }} realizada por {{ object.usuario.nome }} em {{ object.data_hora|date:"d/m/Y H:i" }}?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger"><i class="bi bi-trash"></i> Excluir</button>
+        <a href="{% url 'administracoes' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
