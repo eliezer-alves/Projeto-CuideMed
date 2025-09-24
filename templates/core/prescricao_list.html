@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Prescrições - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Prescrições</h1>
+            <a href="{% url 'prescricao_create' %}" class="btn btn-primary">Nova Prescrição</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if prescricoes %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Medicamento</th>
+                                    <th>Dose</th>
+                                    <th>Frequência</th>
+                                    <th>Data/Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prescricao in prescricoes %}
+                                    <tr>
+                                        <td>{{ prescricao.paciente.nome }}</td>
+                                        <td>{{ prescricao.medicamento.nome }}</td>
+                                        <td>{{ prescricao.dose }}</td>
+                                        <td>{{ prescricao.frequencia }}</td>
+                                        <td>{{ prescricao.data_hora|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhuma prescrição encontrada.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

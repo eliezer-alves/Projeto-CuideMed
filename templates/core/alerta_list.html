@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alertas - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Alertas</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if alertas %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Tipo</th>
+                                    <th>Mensagem</th>
+                                    <th>Data/Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alerta in alertas %}
+                                    <tr>
+                                        <td>{{ alerta.paciente.nome }}</td>
+                                        <td>
+                                            <span class="badge bg-{% if alerta.tipo_alerta == 'horario' %}warning{% elif alerta.tipo_alerta == 'interacao' %}danger{% else %}info{% endif %}">
+                                                {{ alerta.get_tipo_alerta_display }}
+                                            </span>
+                                        </td>
+                                        <td>{{ alerta.mensagem }}</td>
+                                        <td>{{ alerta.data_hora|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum alerta encontrado.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

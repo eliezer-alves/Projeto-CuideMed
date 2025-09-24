@@ -1,0 +1,158 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView, LogoutView
+from django.contrib import messages
+from django.utils import timezone
+from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
+from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm
+
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html'
+    authentication_form = UsuarioLoginForm
+
+    def form_valid(self, form):
+        messages.success(self.request, f'Bem-vindo, {form.get_user().username}!')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Nome de usuário ou senha inválidos.')
+        return super().form_invalid(form)
+
+class CustomLogoutView(LoginRequiredMixin, LogoutView):
+    next_page = reverse_lazy('login')
+
+    def dispatch(self, request, *args, **kwargs):
+        messages.info(request, 'Você foi desconectado com sucesso.')
+        return super().dispatch(request, *args, **kwargs)
+
+class DashboardView(LoginRequiredMixin, ListView):
+    template_name = 'core/dashboard.html'
+    context_object_name = 'alertas_recentes'
+
+    def get_queryset(self):
+        return Alerta.objects.order_by('-data_hora')[:5]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_pacientes'] = Paciente.objects.count()
+        context['total_medicamentos'] = Medicamento.objects.count()
+        context['total_prescricoes_hoje'] = Prescricao.objects.filter(data_hora__date=timezone.now().date()).count()
+        context['proximas_administracoes'] = Administracao.objects.filter(data_hora__gte=timezone.now()).order_by('data_hora')[:5]
+        return context
+
+# Paciente Views
+class PacienteListView(LoginRequiredMixin, ListView):
+    model = Paciente
+    template_name = 'core/paciente_list.html'
+    context_object_name = 'pacientes'
+
+class PacienteDetailView(LoginRequiredMixin, DetailView):
+    model = Paciente
+    template_name = 'core/paciente_detail.html'
+    context_object_name = 'paciente'
+
+class PacienteCreateView(LoginRequiredMixin, CreateView):
+    model = Paciente
+    form_class = PacienteForm
+    template_name = 'core/paciente_form.html'
+    success_url = reverse_lazy('paciente_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Paciente cadastrado com sucesso!')
+        return super().form_valid(form)
+
+class PacienteUpdateView(LoginRequiredMixin, UpdateView):
+    model = Paciente
+    form_class = PacienteForm
+    template_name = 'core/paciente_form.html'
+    success_url = reverse_lazy('paciente_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Paciente atualizado com sucesso!')
+        return super().form_valid(form)
+
+class PacienteDeleteView(LoginRequiredMixin, DeleteView):
+    model = Paciente
+    template_name = 'core/paciente_confirm_delete.html'
+    success_url = reverse_lazy('paciente_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Paciente excluído com sucesso!')
+        return super().form_valid(form)
+
+# Medicamento Views
+class MedicamentoListView(LoginRequiredMixin, ListView):
+    model = Medicamento
+    template_name = 'core/medicamento_list.html'
+    context_object_name = 'medicamentos'
+
+class MedicamentoCreateView(LoginRequiredMixin, CreateView):
+    model = Medicamento
+    form_class = MedicamentoForm
+    template_name = 'core/medicamento_form.html'
+    success_url = reverse_lazy('medicamento_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Medicamento cadastrado com sucesso!')
+        return super().form_valid(form)
+
+class MedicamentoUpdateView(LoginRequiredMixin, UpdateView):
+    model = Medicamento
+    form_class = MedicamentoForm
+    template_name = 'core/medicamento_form.html'
+    success_url = reverse_lazy('medicamento_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Medicamento atualizado com sucesso!')
+        return super().form_valid(form)
+
+class MedicamentoDeleteView(LoginRequiredMixin, DeleteView):
+    model = Medicamento
+    template_name = 'core/medicamento_confirm_delete.html'
+    success_url = reverse_lazy('medicamento_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Medicamento excluído com sucesso!')
+        return super().form_valid(form)
+
+# Prescricao Views
+class PrescricaoListView(LoginRequiredMixin, ListView):
+    model = Prescricao
+    template_name = 'core/prescricao_list.html'
+    context_object_name = 'prescricoes'
+
+class PrescricaoCreateView(LoginRequiredMixin, CreateView):
+    model = Prescricao
+    form_class = PrescricaoForm
+    template_name = 'core/prescricao_form.html'
+    success_url = reverse_lazy('prescricao_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Prescrição criada com sucesso!')
+        return super().form_valid(form)
+
+# Administracao Views
+class AdministracaoListView(LoginRequiredMixin, ListView):
+    model = Administracao
+    template_name = 'core/administracao_list.html'
+    context_object_name = 'administracoes'
+
+class AdministracaoCreateView(LoginRequiredMixin, CreateView):
+    model = Administracao
+    form_class = AdministracaoForm
+    template_name = 'core/administracao_form.html'
+    success_url = reverse_lazy('administracao_list')
+
+    def form_valid(self, form):
+        form.instance.usuario = self.request.user
+        messages.success(self.request, 'Administração registrada com sucesso!')
+        return super().form_valid(form)
+
+# Alerta Views
+class AlertaListView(LoginRequiredMixin, ListView):
+    model = Alerta
+    template_name = 'core/alerta_list.html'
+    context_object_name = 'alertas'
+

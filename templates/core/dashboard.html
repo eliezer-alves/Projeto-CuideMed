@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Dashboard</h1>
+        <p class="lead">Bem-vindo ao Sistema de Medicação Hospitalar</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Pacientes</h5>
+                <h2>{{ total_pacientes }}</h2>
+                <p class="card-text">Total de pacientes cadastrados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Medicamentos</h5>
+                <h2>{{ total_medicamentos }}</h2>
+                <p class="card-text">Total de medicamentos cadastrados</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Prescrições Hoje</h5>
+                <h2>{{ total_prescricoes_hoje }}</h2>
+                <p class="card-text">Prescrições feitas hoje</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Alertas</h5>
+                <h2>{{ alertas_recentes|length }}</h2>
+                <p class="card-text">Alertas recentes</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Alertas Recentes</h5>
+            </div>
+            <div class="card-body">
+                {% if alertas_recentes %}
+                    <ul class="list-group list-group-flush">
+                        {% for alerta in alertas_recentes %}
+                            <li class="list-group-item">
+                                <strong>{{ alerta.paciente.nome }}</strong> - {{ alerta.tipo_alerta }}
+                                <br><small class="text-muted">{{ alerta.data_hora|date:"d/m/Y H:i" }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nenhum alerta recente.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Próximas Administrações</h5>
+            </div>
+            <div class="card-body">
+                {% if proximas_administracoes %}
+                    <ul class="list-group list-group-flush">
+                        {% for admin in proximas_administracoes %}
+                            <li class="list-group-item">
+                                <strong>{{ admin.prescricao.paciente.nome }}</strong> - {{ admin.prescricao.medicamento.nome }}
+                                <br><small class="text-muted">{{ admin.data_hora|date:"d/m/Y H:i" }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Nenhuma administração próxima.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

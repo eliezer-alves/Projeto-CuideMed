@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Editar{% else %}Novo{% endif %} Medicamento - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>{% if object %}Editar{% else %}Novo{% endif %} Medicamento</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="{{ form.nome.id_for_label }}" class="form-label">{{ form.nome.label }}</label>
+                        {{ form.nome }}
+                        {% if form.nome.errors %}
+                            <div class="text-danger">{{ form.nome.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.dosagem.id_for_label }}" class="form-label">{{ form.dosagem.label }}</label>
+                        {{ form.dosagem }}
+                        {% if form.dosagem.errors %}
+                            <div class="text-danger">{{ form.dosagem.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.via_administracao.id_for_label }}" class="form-label">{{ form.via_administracao.label }}</label>
+                        {{ form.via_administracao }}
+                        {% if form.via_administracao.errors %}
+                            <div class="text-danger">{{ form.via_administracao.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                        <a href="{% url 'medicamento_list' %}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Administrações - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Administrações</h1>
+            <a href="{% url 'administracao_create' %}" class="btn btn-primary">Registrar Administração</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if administracoes %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Paciente</th>
+                                    <th>Medicamento</th>
+                                    <th>Administrado por</th>
+                                    <th>Data/Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for administracao in administracoes %}
+                                    <tr>
+                                        <td>{{ administracao.prescricao.paciente.nome }}</td>
+                                        <td>{{ administracao.prescricao.medicamento.nome }}</td>
+                                        <td>{{ administracao.usuario.username }}</td>
+                                        <td>{{ administracao.data_hora|date:"d/m/Y H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhuma administração registrada.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

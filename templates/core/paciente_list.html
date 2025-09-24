@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pacientes - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Pacientes</h1>
+            <a href="{% url 'paciente_create' %}" class="btn btn-primary">Novo Paciente</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if pacientes %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Prontuário</th>
+                                    <th>Data de Nascimento</th>
+                                    <th>Sexo</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for paciente in pacientes %}
+                                    <tr>
+                                        <td>{{ paciente.nome }}</td>
+                                        <td>{{ paciente.prontuario }}</td>
+                                        <td>{{ paciente.data_nascimento|date:"d/m/Y" }}</td>
+                                        <td>{{ paciente.get_sexo_display }}</td>
+                                        <td>
+                                            <a href="{% url 'paciente_detail' paciente.pk %}" class="btn btn-sm btn-info">Ver</a>
+                                            <a href="{% url 'paciente_update' paciente.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                                            <a href="{% url 'paciente_delete' paciente.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum paciente cadastrado.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
