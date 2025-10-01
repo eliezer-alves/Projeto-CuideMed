@@ -6,8 +6,9 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils import timezone
 from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
-from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm
+from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm
 
+# Autenticação
 class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
     authentication_form = UsuarioLoginForm
@@ -27,6 +28,7 @@ class CustomLogoutView(LoginRequiredMixin, LogoutView):
         messages.info(request, 'Você foi desconectado com sucesso.')
         return super().dispatch(request, *args, **kwargs)
 
+# Dashboard
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = 'core/dashboard.html'
     context_object_name = 'alertas_recentes'
@@ -156,3 +158,12 @@ class AlertaListView(LoginRequiredMixin, ListView):
     template_name = 'core/alerta_list.html'
     context_object_name = 'alertas'
 
+class AlertaCreateView(LoginRequiredMixin, CreateView):
+    model = Alerta
+    form_class = AlertaForm
+    template_name = 'core/alerta_form.html'
+    success_url = reverse_lazy('alerta_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Alerta cadastrado com sucesso!')
+        return super().form_valid(form)

@@ -5,7 +5,7 @@ from .views_frontend import (
     MedicamentoListView, MedicamentoCreateView, MedicamentoUpdateView, MedicamentoDeleteView,
     PrescricaoListView, PrescricaoCreateView,
     AdministracaoListView, AdministracaoCreateView,
-    AlertaListView
+    AlertaListView, AlertaCreateView
 )
 
 urlpatterns = [
@@ -39,4 +39,5 @@ urlpatterns = [
     
     # Alertas
     path('alertas/', AlertaListView.as_view(), name='alerta_list'),
+    path('alertas/adicionar/', AlertaCreateView.as_view(), name='alerta_add'),
 ]

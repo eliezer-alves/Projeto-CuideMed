@@ -26,3 +26,20 @@ class AlertaViewSet(viewsets.ModelViewSet):
     queryset = Alerta.objects.all()
     serializer_class = AlertaSerializer
 
+from django.views.generic import CreateView
+from django.urls import reverse_lazy
+from django.contrib import messages
+from .models import Alerta
+from .forms import AlertaForm
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+class AlertaCreateView(LoginRequiredMixin, CreateView):
+    model = Alerta
+    form_class = AlertaForm
+    template_name = 'core/alerta_form.html'
+    success_url = reverse_lazy('alerta_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Alerta cadastrado com sucesso!')
+        return super().form_valid(form)
+
