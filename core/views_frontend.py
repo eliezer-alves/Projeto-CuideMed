@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils import timezone
 from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
-from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm, UsuarioForm
+from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm, UsuarioForm, UsuarioUpdateForm
 
 # Autenticação
 class CustomLoginView(LoginView):
@@ -169,12 +169,22 @@ class AlertaCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 # Usuario Views
+class UsuarioListView(LoginRequiredMixin, ListView):
+    model = Usuario
+    template_name = 'core/usuario_list.html'
+    context_object_name = 'usuarios'
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            messages.error(request, 'Você não tem permissão para acessar a listagem de usuários.')
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
 
 class UsuarioCreateView(LoginRequiredMixin, CreateView):
     model = Usuario
     form_class = UsuarioForm
     template_name = 'core/usuario_form.html'
-    success_url = reverse_lazy('dashboard')
+    success_url = reverse_lazy('usuario_list')
 
     def form_valid(self, form):
         messages.success(self.request, 'Usuário cadastrado com sucesso!')
@@ -184,4 +194,36 @@ class UsuarioCreateView(LoginRequiredMixin, CreateView):
         if not request.user.is_staff:
             messages.error(request, 'Você não tem permissão para acessar esta página.')
             return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
+
+class UsuarioUpdateView(LoginRequiredMixin, UpdateView):
+    model = Usuario
+    form_class = UsuarioUpdateForm
+    template_name = 'core/usuario_form.html'
+    success_url = reverse_lazy('usuario_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Usuário atualizado com sucesso!')
+        return super().form_valid(form)
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            messages.error(request, 'Você não tem permissão para editar usuários.')
+            return redirect('usuario_list')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class UsuarioDeleteView(LoginRequiredMixin, DeleteView):
+    model = Usuario
+    template_name = 'core/usuario_confirm_delete.html'
+    success_url = reverse_lazy('usuario_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Usuário excluído com sucesso!')
+        return super().form_valid(form)
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            messages.error(request, 'Você não tem permissão para excluir usuários.')
+            return redirect('usuario_list')
         return super().dispatch(request, *args, **kwargs)

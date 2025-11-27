@@ -43,3 +43,14 @@ class UsuarioForm(UserCreationForm):
         self.fields['email'].required = True
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+class UsuarioUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Usuario
+        fields = ('username', 'email', 'first_name', 'last_name', 'tipo_usuario')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].required = True
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
