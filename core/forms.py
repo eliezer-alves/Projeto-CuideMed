@@ -40,7 +40,7 @@ class UsuarioForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email'].required = True
+        self.fields['email'].required = False
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
 
