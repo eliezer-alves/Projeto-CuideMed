@@ -17,6 +17,10 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return self.username
+    
+    def save(self, *args, **kwargs):
+        self.is_staff = self.tipo_usuario == 'administrador'
+        super().save(*args, **kwargs)
 
 class Paciente(models.Model):
     SEXO_CHOICES = [

@@ -6,7 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils import timezone
 from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
-from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm
+from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm, UsuarioForm
 
 # Autenticação
 class CustomLoginView(LoginView):
@@ -167,3 +167,21 @@ class AlertaCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, 'Alerta cadastrado com sucesso!')
         return super().form_valid(form)
+
+# Usuario Views
+
+class UsuarioCreateView(LoginRequiredMixin, CreateView):
+    model = Usuario
+    form_class = UsuarioForm
+    template_name = 'core/usuario_form.html'
+    success_url = reverse_lazy('dashboard')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Usuário cadastrado com sucesso!')
+        return super().form_valid(form)
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            messages.error(request, 'Você não tem permissão para acessar esta página.')
+            return redirect('dashboard')
+        return super().dispatch(request, *args, **kwargs)
