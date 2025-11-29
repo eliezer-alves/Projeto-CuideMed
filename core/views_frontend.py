@@ -35,7 +35,8 @@ class DashboardView(LoginRequiredMixin, ListView):
     context_object_name = 'alertas_recentes'
 
     def get_queryset(self):
-        return Alerta.objects.order_by('-data_hora')[:5]
+        # ANTES: Alerta.objects.order_by('-data_hora')[:5]
+        return Alerta.objects.order_by('-criado_em')[:5]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -44,7 +45,9 @@ class DashboardView(LoginRequiredMixin, ListView):
         context['total_prescricoes_hoje'] = Prescricao.objects.filter(
             data_criacao__date=timezone.now().date()
         ).count()
-        context['proximas_administracoes'] = Administracao.objects.filter(data_hora__gte=timezone.now()).order_by('data_hora')[:5]
+        context['proximas_administracoes'] = Administracao.objects.filter(
+            data_hora__gte=timezone.now()
+        ).order_by('data_hora')[:5]
         return context
 
 # Paciente Views

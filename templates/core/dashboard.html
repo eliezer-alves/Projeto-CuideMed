@@ -62,7 +62,10 @@
                         {% for alerta in alertas_recentes %}
                             <li class="list-group-item">
                                 <strong>{{ alerta.paciente.nome }}</strong> - {{ alerta.tipo_alerta }}
-                                <br><small class="text-muted">{{ alerta.data_hora|date:"d/m/Y H:i" }}</small>
+                                <br>
+                                <small class="text-muted">
+                                    Início: {{ alerta.inicio|date:"d/m/Y H:i" }}
+                                </small>
                             </li>
                         {% endfor %}
                     </ul>
