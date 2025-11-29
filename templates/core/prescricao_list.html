@@ -26,7 +26,10 @@
                                     <th>Medicamento</th>
                                     <th>Dose</th>
                                     <th>Frequência</th>
-                                    <th>Data/Hora</th>
+                                    <th>Status</th>
+                                    <th>Médico</th>
+                                    <th>Data</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -36,14 +39,30 @@
                                         <td>{{ prescricao.medicamento.nome }}</td>
                                         <td>{{ prescricao.dose }}</td>
                                         <td>{{ prescricao.frequencia }}</td>
-                                        <td>{{ prescricao.data_hora|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <span class="badge rounded-pill {{ prescricao.get_status_badge_class }}">
+                                                {{ prescricao.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if prescricao.medico %}
+                                                {{ prescricao.medico.first_name|default:prescricao.medico.username }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ prescricao.data_criacao|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'prescricao_update' prescricao.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                                            <a href="{% url 'prescricao_delete' prescricao.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">Nenhuma prescrição encontrada.</p>
+                    <p class="text-muted">Nenhuma prescrição cadastrada.</p>
                 {% endif %}
             </div>
         </div>

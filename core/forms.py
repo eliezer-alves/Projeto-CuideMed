@@ -51,7 +51,18 @@ class MedicamentoForm(forms.ModelForm):
 class PrescricaoForm(forms.ModelForm):
     class Meta:
         model = Prescricao
-        fields = ['paciente', 'medicamento', 'dose', 'frequencia']
+        fields = ['paciente', 'medicamento', 'dose', 'frequencia', 'status', 'observacoes']
+        widgets = {
+            'observacoes': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # aplica classe bootstrap em todos
+        for field in self.fields.values():
+            if not isinstance(field.widget, forms.Textarea):
+                field.widget.attrs.setdefault('class', 'form-control')
+
 
 class AdministracaoForm(forms.ModelForm):
     class Meta:
