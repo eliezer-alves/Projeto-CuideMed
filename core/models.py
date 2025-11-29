@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 
 class Usuario(AbstractUser):
@@ -58,11 +59,37 @@ class Medicamento(models.Model):
         return f"{self.nome} ({self.dosagem})"
 
 class Prescricao(models.Model):
+    STATUS_CHOICES = [
+        ('ativa', 'Ativa'),
+        ('suspensa', 'Suspensa'),
+        ('encerrada', 'Encerrada'),
+    ]
+
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
     medicamento = models.ForeignKey(Medicamento, on_delete=models.CASCADE)
-    data_hora = models.DateTimeField(auto_now_add=True)
+
+    # médico que prescreveu (usuário logado do tipo médico)
+    medico = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='prescricoes',
+        null=True,
+        blank=True,
+    )
+
+    data_criacao = models.DateTimeField(auto_now_add=True)
+    data_ultima_atualizacao = models.DateTimeField(auto_now=True)
+
     dose = models.CharField(max_length=100)
     frequencia = models.CharField(max_length=100)
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='ativa',
+    )
+
+    observacoes = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Prescrição"
@@ -70,6 +97,15 @@ class Prescricao(models.Model):
 
     def __str__(self):
         return f"Prescrição para {self.paciente.nome} - {self.medicamento.nome}"
+
+    def get_status_badge_class(self):
+        mapping = {
+            'ativa': 'bg-success',     # verde
+            'suspensa': 'bg-warning',  # amarelo
+            'encerrada': 'bg-secondary',  # cinza
+        }
+        # badge padrão se cair em algum status inesperado
+        return mapping.get(self.status, 'bg-secondary')
 
 class Administracao(models.Model):
     prescricao = models.ForeignKey(Prescricao, on_delete=models.CASCADE)

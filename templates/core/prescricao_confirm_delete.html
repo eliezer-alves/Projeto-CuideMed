@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Excluir Prescrição - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mt-4">
+            <div class="card-body">
+                <h3>Confirmar exclusão</h3>
+                <p>
+                    Tem certeza que deseja excluir a prescrição de
+                    <strong>{{ object.medicamento.nome }}</strong>
+                    para o paciente
+                    <strong>{{ object.paciente.nome }}</strong>?
+                </p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Excluir</button>
+                    <a href="{% url 'prescricao_list' %}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

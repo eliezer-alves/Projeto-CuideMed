@@ -3,7 +3,7 @@ from .views_frontend import (
     CustomLoginView, CustomLogoutView, DashboardView,
     PacienteListView, PacienteDetailView, PacienteCreateView, PacienteUpdateView, PacienteDeleteView,
     MedicamentoListView, MedicamentoCreateView, MedicamentoUpdateView, MedicamentoDeleteView,
-    PrescricaoListView, PrescricaoCreateView,
+    PrescricaoListView, PrescricaoCreateView, PrescricaoUpdateView, PrescricaoDeleteView,
     AdministracaoListView, AdministracaoCreateView,
     AlertaListView, AlertaCreateView,
     UsuarioListView, UsuarioCreateView, UsuarioUpdateView, UsuarioDeleteView,
@@ -33,6 +33,10 @@ urlpatterns = [
     # Prescrições
     path('prescricoes/', PrescricaoListView.as_view(), name='prescricao_list'),
     path('prescricoes/nova/', PrescricaoCreateView.as_view(), name='prescricao_create'),
+    path('prescricoes/<int:pk>/editar/', PrescricaoUpdateView.as_view(), name='prescricao_update'),
+    path('prescricoes/<int:pk>/excluir/', PrescricaoDeleteView.as_view(), name='prescricao_delete'),
+    # path('prescricoes/<int:pk>/suspender/', PrescricaoSuspenderView.as_view(), name='prescricao_suspender'),
+
     
     # Administrações
     path('administracoes/', AdministracaoListView.as_view(), name='administracao_list'),

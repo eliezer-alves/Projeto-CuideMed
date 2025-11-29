@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils import timezone
+from django.views import View
 from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
 from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm, UsuarioForm, UsuarioUpdateForm
 
@@ -40,7 +41,9 @@ class DashboardView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['total_pacientes'] = Paciente.objects.count()
         context['total_medicamentos'] = Medicamento.objects.count()
-        context['total_prescricoes_hoje'] = Prescricao.objects.filter(data_hora__date=timezone.now().date()).count()
+        context['total_prescricoes_hoje'] = Prescricao.objects.filter(
+            data_criacao__date=timezone.now().date()
+        ).count()
         context['proximas_administracoes'] = Administracao.objects.filter(data_hora__gte=timezone.now()).order_by('data_hora')[:5]
         return context
 
@@ -125,6 +128,14 @@ class PrescricaoListView(LoginRequiredMixin, ListView):
     template_name = 'core/prescricao_list.html'
     context_object_name = 'prescricoes'
 
+    def get_queryset(self):
+        # Lista todas as prescrições, mais recentes primeiro
+        return (
+            Prescricao.objects
+            .select_related('paciente', 'medicamento', 'medico')
+            .order_by('-data_criacao')
+        )
+
 class PrescricaoCreateView(LoginRequiredMixin, CreateView):
     model = Prescricao
     form_class = PrescricaoForm
@@ -132,8 +143,40 @@ class PrescricaoCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('prescricao_list')
 
     def form_valid(self, form):
+        # se o usuário logado for médico, vincula na prescrição
+        if hasattr(self.request.user, 'tipo_usuario') and self.request.user.tipo_usuario == 'medico':
+            form.instance.medico = self.request.user
         messages.success(self.request, 'Prescrição criada com sucesso!')
         return super().form_valid(form)
+
+class PrescricaoUpdateView(LoginRequiredMixin, UpdateView):
+    model = Prescricao
+    form_class = PrescricaoForm
+    template_name = 'core/prescricao_form.html'
+    success_url = reverse_lazy('prescricao_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Prescrição atualizada com sucesso!')
+        return super().form_valid(form)
+
+class PrescricaoDeleteView(LoginRequiredMixin, DeleteView):
+    model = Prescricao
+    template_name = 'core/prescricao_confirm_delete.html'
+    success_url = reverse_lazy('prescricao_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Prescrição excluída com sucesso!')
+        return super().form_valid(form)
+
+
+# class PrescricaoSuspenderView(LoginRequiredMixin, View):
+#     def post(self, request, pk):
+#         prescricao = get_object_or_404(Prescricao, pk=pk)
+#         prescricao.status = 'suspensa'
+#         prescricao.save()
+#         messages.success(request, 'Prescrição suspensa com sucesso.')
+#         return redirect('prescricao_list')
+
 
 # Administracao Views
 class AdministracaoListView(LoginRequiredMixin, ListView):
@@ -175,7 +218,7 @@ class UsuarioListView(LoginRequiredMixin, ListView):
     context_object_name = 'usuarios'
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
+        if not (request.user.is_superuser or request.user.is_staff):
             messages.error(request, 'Você não tem permissão para acessar a listagem de usuários.')
             return redirect('dashboard')
         return super().dispatch(request, *args, **kwargs)
@@ -191,7 +234,7 @@ class UsuarioCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
+        if not (request.user.is_superuser or request.user.is_staff):
             messages.error(request, 'Você não tem permissão para acessar esta página.')
             return redirect('dashboard')
         return super().dispatch(request, *args, **kwargs)
@@ -207,7 +250,7 @@ class UsuarioUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
+        if not (request.user.is_superuser or request.user.is_staff):
             messages.error(request, 'Você não tem permissão para editar usuários.')
             return redirect('usuario_list')
         return super().dispatch(request, *args, **kwargs)
@@ -223,7 +266,7 @@ class UsuarioDeleteView(LoginRequiredMixin, DeleteView):
         return super().form_valid(form)
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
+        if not (request.user.is_superuser or request.user.is_staff):
             messages.error(request, 'Você não tem permissão para excluir usuários.')
             return redirect('usuario_list')
         return super().dispatch(request, *args, **kwargs)

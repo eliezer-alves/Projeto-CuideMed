@@ -37,7 +37,7 @@
                             <a class="nav-link" href="{% url 'alerta_list' %}">Alertas</a>
                         </li>
 
-                        {% if user.is_staff %}
+                        {% if user.is_superuser or user.is_staff %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{% url 'usuario_list' %}">Gerenciar usuários</a>
                             </li>
