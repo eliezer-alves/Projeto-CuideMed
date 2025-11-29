@@ -28,10 +28,15 @@ class Paciente(models.Model):
         ('F', 'Feminino'),
         ('O', 'Outro'),
     ]
+
     nome = models.CharField(max_length=255)
+    cpf = models.CharField(max_length=11, unique=True, blank=True, null=True)
     data_nascimento = models.DateField()
     sexo = models.CharField(max_length=1, choices=SEXO_CHOICES)
     prontuario = models.CharField(max_length=50, unique=True)
+    telefone_contato = models.CharField(max_length=20, blank=True, null=True)
+    alergias = models.TextField(blank=True, null=True)
+    historico_clinico = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Paciente"
