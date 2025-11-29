@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Usuários - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Usuários</h1>
+            <a href="{% url 'usuario_create' %}" class="btn btn-primary">Novo Usuário</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if usuarios %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Usuário</th>
+                                    <th>Email</th>
+                                    <th>Tipo</th>
+                                    <th>Data de Cadastro</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usuario in usuarios %}
+                                    <tr>
+                                        <td>{{ usuario.get_full_name|default:usuario.username }}</td>
+                                        <td>{{ usuario.username }}</td>
+                                        <td>{{ usuario.email }}</td>
+                                        <td>{{ usuario.get_tipo_usuario_display }}</td>
+                                        <td>{{ usuario.date_joined|date:"d/m/Y H:i" }}</td>
+                                        <td>
+                                            <a href="{% url 'usuario_update' usuario.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                                            <a href="{% url 'usuario_delete' usuario.pk %}" class="btn btn-sm btn-danger">Excluir</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum usuário cadastrado.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

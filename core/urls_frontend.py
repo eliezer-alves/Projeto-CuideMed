@@ -5,7 +5,8 @@ from .views_frontend import (
     MedicamentoListView, MedicamentoCreateView, MedicamentoUpdateView, MedicamentoDeleteView,
     PrescricaoListView, PrescricaoCreateView,
     AdministracaoListView, AdministracaoCreateView,
-    AlertaListView, AlertaCreateView
+    AlertaListView, AlertaCreateView,
+    UsuarioListView, UsuarioCreateView, UsuarioUpdateView, UsuarioDeleteView,
 )
 
 urlpatterns = [
@@ -40,4 +41,10 @@ urlpatterns = [
     # Alertas
     path('alertas/', AlertaListView.as_view(), name='alerta_list'),
     path('alertas/adicionar/', AlertaCreateView.as_view(), name='alerta_add'),
+
+    # Usuários
+    path('usuarios/', UsuarioListView.as_view(), name='usuario_list'),
+    path('usuarios/novo/', UsuarioCreateView.as_view(), name='usuario_create'),
+    path('usuarios/<int:pk>/editar/', UsuarioUpdateView.as_view(), name='usuario_update'),
+    path('usuarios/<int:pk>/excluir/', UsuarioDeleteView.as_view(), name='usuario_delete'),
 ]
