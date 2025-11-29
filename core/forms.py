@@ -48,6 +48,11 @@ class MedicamentoForm(forms.ModelForm):
         model = Medicamento
         fields = ['nome', 'dosagem', 'via_administracao']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
 class PrescricaoForm(forms.ModelForm):
     class Meta:
         model = Prescricao
