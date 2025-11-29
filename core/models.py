@@ -148,7 +148,7 @@ class Alerta(models.Model):
     tipo_alerta = models.CharField(
         max_length=20,
         choices=TIPO_ALERTA_CHOICES,
-        default='prescricao',
+        default='outro',
     )
 
     paciente = models.ForeignKey(
@@ -168,7 +168,10 @@ class Alerta(models.Model):
     mensagem = models.TextField()
 
     # ————— Janela de atividade —————
-    inicio = models.DateTimeField(default=timezone.now)
+    inicio = models.DateTimeField(
+        default=timezone.now,
+        blank=True,
+    )
     fim = models.DateTimeField(null=True, blank=True)
 
     # ————— Recorrência —————
@@ -219,21 +222,20 @@ class Alerta(models.Model):
         return f"Alerta para {self.paciente.nome}"
 
     def clean(self):
-        """
-        Valida as combinações tipo_alerta + recorrência + campos auxiliares.
-        Mantém as regras simples, mas já garante consistência.
-        """
         super().clean()
 
         # Se for alerta de prescrição, precisa ter prescricao associada
         if self.tipo_alerta == 'prescricao' and not self.prescricao:
-            raise ValidationError("Alertas do tipo 'prescrição' devem estar vinculados a uma prescrição.")
+            # Erro vai direto no campo 'prescricao' no form
+            raise ValidationError({
+                'prescricao': "Selecione uma prescrição para alertas do tipo 'prescrição'."
+            })
 
-        # Garante paciente vindo da prescrição quando existir
+        # Se for prescrição + prescrição presente → paciente vem da prescrição
         if self.tipo_alerta == 'prescricao' and self.prescricao:
             self.paciente = self.prescricao.paciente
 
-        # Reset de campos que não fazem sentido para determinadas recorrências
+        # Regras de recorrência (essas você já tinha, mantive mesmas):
         if self.recorrencia == 'nenhuma':
             self.hora_diaria = None
             self.dia_semana = None
@@ -242,36 +244,42 @@ class Alerta(models.Model):
 
         elif self.recorrencia == 'diaria':
             if not self.hora_diaria:
-                raise ValidationError("Para recorrência diária, informe o horário diário do alerta.")
-            # limpa outros
+                raise ValidationError({
+                    'hora_diaria': "Para recorrência diária, informe o horário diário do alerta."
+                })
             self.dia_semana = None
             self.hora_semanal = None
             self.horarios_multiplos = None
 
         elif self.recorrencia == 'semanal':
             if self.dia_semana is None or not self.hora_semanal:
-                raise ValidationError("Para recorrência semanal, informe o dia da semana e o horário.")
-            # limpa outros
+                raise ValidationError({
+                    'dia_semana': "Informe o dia da semana.",
+                    'hora_semanal': "Informe o horário para o alerta semanal.",
+                })
             self.hora_diaria = None
             self.horarios_multiplos = None
 
         elif self.recorrencia == 'varias_vezes_dia':
             if not self.horarios_multiplos:
-                raise ValidationError("Para recorrência 'várias vezes ao dia', informe ao menos um horário.")
-            # valida formato básico HH:MM,HH:MM…
+                raise ValidationError({
+                    'horarios_multiplos': "Para 'várias vezes ao dia', informe ao menos um horário."
+                })
+
             partes = [p.strip() for p in self.horarios_multiplos.split(',') if p.strip()]
             from datetime import time
             for p in partes:
                 try:
                     h, m = p.split(':')
-                    h = int(h)
-                    m = int(m)
-                    time(hour=h, minute=m)
+                    time(hour=int(h), minute=int(m))
                 except Exception:
-                    raise ValidationError(
-                        "Use horários no formato HH:MM separados por vírgula, por exemplo: 08:00,14:00,20:30."
-                    )
-            # limpa campos não usados
+                    raise ValidationError({
+                        'horarios_multiplos': (
+                            "Use horários no formato HH:MM separados por vírgula, "
+                            "por exemplo: 08:00,14:00,20:30."
+                        )
+                    })
+
             self.hora_diaria = None
             self.dia_semana = None
             self.hora_semanal = None

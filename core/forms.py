@@ -148,9 +148,12 @@ class AlertaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # garante prescrição como opcional no form
+        if 'prescricao' in self.fields:
+            self.fields['prescricao'].required = False
+
         # Deixa tudo com cara de Bootstrap
         for name, field in self.fields.items():
             if isinstance(field.widget, (forms.CheckboxInput, forms.RadioSelect)):
                 continue
-            # Se o widget já tiver class setada em widgets, só não sobrescreve
             field.widget.attrs.setdefault('class', 'form-control')
