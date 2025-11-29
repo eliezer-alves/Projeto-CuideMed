@@ -4,25 +4,31 @@
 {% block title %}Registrar Administração - Sistema de Medicação Hospitalar{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row mt-4">
     <div class="col-12">
-        <h1>Registrar Administração</h1>
+        <h1 class="mb-3">Registrar Administração</h1>
     </div>
 </div>
 
 <div class="row">
-    <div class="col-md-8">
+    <div class="col-md-8 col-lg-6">
         <div class="card">
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="{{ form.prescricao.id_for_label }}" class="form-label">{{ form.prescricao.label }}</label>
-                        {{ form.prescricao }}
-                        {% if form.prescricao.errors %}
-                            <div class="text-danger">{{ form.prescricao.errors }}</div>
-                        {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="{{ form.prescricao.id_for_label }}" class="form-label">
+                                {{ form.prescricao.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.prescricao }}
+                            {% if form.prescricao.errors %}
+                                <div class="text-danger">{{ form.prescricao.errors }}</div>
+                            {% endif %}
+                        </div>
                     </div>
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary">Registrar</button>
                         <a href="{% url 'administracao_list' %}" class="btn btn-secondary">Cancelar</a>

@@ -74,6 +74,11 @@ class AdministracaoForm(forms.ModelForm):
         model = Administracao
         fields = ['prescricao']
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['prescricao'].widget.attrs.update({'class': 'form-select'})
+
+
 # ✅ Formulário para criar alertas
 class AlertaForm(forms.ModelForm):
     class Meta:
