@@ -211,6 +211,26 @@ class AlertaCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Alerta cadastrado com sucesso!')
         return super().form_valid(form)
 
+class AlertaUpdateView(LoginRequiredMixin, UpdateView):
+    model = Alerta
+    form_class = AlertaForm
+    template_name = 'core/alerta_form.html'
+    success_url = reverse_lazy('alerta_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Alerta atualizado com sucesso!')
+        return super().form_valid(form)
+
+
+class AlertaDeleteView(LoginRequiredMixin, DeleteView):
+    model = Alerta
+    template_name = 'core/alerta_confirm_delete.html'
+    success_url = reverse_lazy('alerta_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Alerta excluído com sucesso!')
+        return super().form_valid(form)
+
 # Usuario Views
 class UsuarioListView(LoginRequiredMixin, ListView):
     model = Usuario

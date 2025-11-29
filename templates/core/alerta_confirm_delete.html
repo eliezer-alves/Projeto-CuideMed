@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Excluir Alerta - Sistema de Medicação Hospitalar{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <h1 class="mb-3">Excluir Alerta</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                Confirmar exclusão
+            </div>
+            <div class="card-body">
+                <p>Tem certeza de que deseja excluir este alerta?</p>
+
+                <ul class="list-group mb-3">
+                    <li class="list-group-item">
+                        <strong>Paciente:</strong> {{ object.paciente.nome }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Tipo:</strong> {{ object.get_tipo_alerta_display }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Mensagem:</strong><br>
+                        {{ object.mensagem }}
+                    </li>
+                    {% if object.prescricao %}
+                        <li class="list-group-item">
+                            <strong>Prescrição:</strong>
+                            {{ object.prescricao.medicamento.nome }} – {{ object.prescricao.dose }},
+                            {{ object.prescricao.frequencia }}
+                        </li>
+                    {% endif %}
+                </ul>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger">
+                            Confirmar exclusão
+                        </button>
+                        <a href="{% url 'alerta_list' %}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
