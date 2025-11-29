@@ -6,8 +6,10 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h1>Alertas</h1>
-        <a href="{% url 'alerta_add' %}" class="btn btn-success mb-3">Adicionar Alerta</a>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1>Alertas</h1>
+            <a href="{% url 'alerta_add' %}" class="btn btn-primary">Novo Alerta</a>
+        </div>
     </div>
 </div>
 
@@ -17,33 +19,95 @@
             <div class="card-body">
                 {% if alertas %}
                     <div class="table-responsive">
-                        <table class="table table-striped">
+                        <table class="table table-striped align-middle">
                             <thead>
                                 <tr>
+                                    <th>Início</th>
                                     <th>Paciente</th>
                                     <th>Tipo</th>
+                                    <th>Prescrição</th>
+                                    <th>Recorrência</th>
                                     <th>Mensagem</th>
-                                    <th>Data/Hora</th>
+                                    <th class="text-end">Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for alerta in alertas %}
                                     <tr>
-                                        <td>{{ alerta.paciente.nome }}</td>
+                                        <!-- Início do alerta -->
                                         <td>
-                                            <span class="badge bg-{% if alerta.tipo_alerta == 'horario' %}warning{% elif alerta.tipo_alerta == 'interacao' %}danger{% else %}info{% endif %}">
+                                            {{ alerta.inicio|date:"d/m/Y H:i" }}
+                                            {% if alerta.fim %}
+                                                <br>
+                                                <small class="text-muted">
+                                                    até {{ alerta.fim|date:"d/m/Y H:i" }}
+                                                </small>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- Paciente -->
+                                        <td>{{ alerta.paciente.nome }}</td>
+
+                                        <!-- Tipo de alerta -->
+                                        <td>
+                                            <span class="badge bg-primary">
                                                 {{ alerta.get_tipo_alerta_display }}
                                             </span>
                                         </td>
-                                        <td>{{ alerta.mensagem }}</td>
-                                        <td>{{ alerta.data_hora|date:"d/m/Y H:i" }}</td>
+
+                                        <!-- Prescrição vinculada -->
+                                        <td>
+                                            {% if alerta.prescricao %}
+                                                <strong>{{ alerta.prescricao.medicamento.nome }}</strong><br>
+                                                <small class="text-muted">
+                                                    Dose: {{ alerta.prescricao.dose }},
+                                                    {{ alerta.prescricao.frequencia }}
+                                                </small>
+                                            {% else %}
+                                                <span class="text-muted">—</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <!-- Recorrência -->
+                                        <td>
+                                            <span class="badge bg-light text-dark">
+                                                {{ alerta.get_recorrencia_display }}
+                                            </span>
+                                            <br>
+                                            <small class="text-muted">
+                                                {% if alerta.recorrencia == 'diario' and alerta.hora_diaria %}
+                                                    Todos os dias às {{ alerta.hora_diaria|time:"H:i" }}
+                                                {% elif alerta.recorrencia == 'semanal' and alerta.dia_semana and alerta.hora_semanal %}
+                                                    {{ alerta.get_dia_semana_display }} às {{ alerta.hora_semanal|time:"H:i" }}
+                                                {% elif alerta.recorrencia == 'multiplos' and alerta.horarios_multiplos %}
+                                                    Horários: {{ alerta.horarios_multiplos }}
+                                                {% endif %}
+                                            </small>
+                                        </td>
+
+                                        <!-- Mensagem -->
+                                        <td style="max-width: 320px;">
+                                            {{ alerta.mensagem|truncatechars:80 }}
+                                        </td>
+
+                                        <!-- Ações -->
+                                        <td class="text-end">
+                                            <a href="{% url 'alerta_update' alerta.pk %}"
+                                               class="btn btn-sm btn-warning me-1">
+                                                Editar
+                                            </a>
+                                            <a href="{% url 'alerta_delete' alerta.pk %}"
+                                               class="btn btn-sm btn-danger">
+                                                Excluir
+                                            </a>
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <p class="text-muted">Nenhum alerta encontrado.</p>
+                    <p class="text-muted mb-0">Nenhum alerta cadastrado.</p>
                 {% endif %}
             </div>
         </div>

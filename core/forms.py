@@ -79,11 +79,6 @@ class AdministracaoForm(forms.ModelForm):
         self.fields['prescricao'].widget.attrs.update({'class': 'form-select'})
 
 
-# ✅ Formulário para criar alertas
-class AlertaForm(forms.ModelForm):
-    class Meta:
-        model = Alerta
-        fields = ['paciente', 'medicamento', 'tipo_alerta', 'mensagem']
 
 # Formulário de login personalizado
 class UsuarioLoginForm(AuthenticationForm):
@@ -111,3 +106,54 @@ class UsuarioUpdateForm(forms.ModelForm):
         self.fields['email'].required = True
         for field in self.fields.values():
             field.widget.attrs.update({'class': 'form-control'})
+
+class AlertaForm(forms.ModelForm):
+    class Meta:
+        model = Alerta
+        fields = [
+            'tipo_alerta',
+            'paciente',
+            'prescricao',
+            'mensagem',
+            'inicio',
+            'fim',
+            'recorrencia',
+            'hora_diaria',
+            'dia_semana',
+            'hora_semanal',
+            'horarios_multiplos',
+        ]
+        widgets = {
+            'mensagem': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
+            'inicio': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'}
+            ),
+            'fim': forms.DateTimeInput(
+                attrs={'type': 'datetime-local', 'class': 'form-control'}
+            ),
+            'hora_diaria': forms.TimeInput(
+                attrs={'type': 'time', 'class': 'form-control'}
+            ),
+            'hora_semanal': forms.TimeInput(
+                attrs={'type': 'time', 'class': 'form-control'}
+            ),
+            'horarios_multiplos': forms.TextInput(
+                attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Ex: 08:00,14:00,20:30',
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # garante prescrição como opcional no form
+        if 'prescricao' in self.fields:
+            self.fields['prescricao'].required = False
+
+        # Deixa tudo com cara de Bootstrap
+        for name, field in self.fields.items():
+            if isinstance(field.widget, (forms.CheckboxInput, forms.RadioSelect)):
+                continue
+            field.widget.attrs.setdefault('class', 'form-control')
