@@ -5,6 +5,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils import timezone
+from datetime import timedelta
 from django.views import View
 from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
 from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm, UsuarioForm, UsuarioUpdateForm
@@ -29,25 +30,79 @@ class CustomLogoutView(LoginRequiredMixin, LogoutView):
         messages.info(request, 'Você foi desconectado com sucesso.')
         return super().dispatch(request, *args, **kwargs)
 
-# Dashboard
+from datetime import timedelta
+from django.utils import timezone
+from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta
+
+
 class DashboardView(LoginRequiredMixin, ListView):
     template_name = 'core/dashboard.html'
     context_object_name = 'alertas_recentes'
 
     def get_queryset(self):
-        # ANTES: Alerta.objects.order_by('-data_hora')[:5]
+        # Se ainda quiser usar em algum lugar: últimos alertas criados
         return Alerta.objects.order_by('-criado_em')[:5]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        agora = timezone.now()
+        hoje = agora.date()
+
+        # limites de tempo
+        limite_15 = agora + timedelta(minutes=15)
+        limite_30 = agora + timedelta(minutes=30)
+        limite_60 = agora + timedelta(hours=1)
+        limite_4h = agora + timedelta(hours=4)
+
+        # base: alertas ativos no futuro
+        base_futuro = Alerta.objects.filter(
+            ativo=True,
+            data_hora__gte=agora,
+        )
+
+        # buckets de tempo
+        context['alertas_15min'] = base_futuro.filter(
+            data_hora__lt=limite_15
+        ).count()
+
+        context['alertas_30min'] = base_futuro.filter(
+            data_hora__gte=limite_15,
+            data_hora__lt=limite_30,
+        ).count()
+
+        context['alertas_1h'] = base_futuro.filter(
+            data_hora__gte=limite_30,
+            data_hora__lt=limite_60,
+        ).count()
+
+        context['alertas_4h'] = base_futuro.filter(
+            data_hora__gte=limite_60,
+            data_hora__lt=limite_4h,
+        ).count()
+
+        # do dia (focados em hoje – pode ter passado ou futuro)
+        context['alertas_dia'] = Alerta.objects.filter(
+            ativo=True,
+            data_hora__date=hoje,
+        ).count()
+
+        # lista simples de próximos alertas (pra card de baixo)
+        context['proximos_alertas'] = base_futuro.order_by('data_hora')[:5]
+
+        # cards gerais já existentes
         context['total_pacientes'] = Paciente.objects.count()
         context['total_medicamentos'] = Medicamento.objects.count()
         context['total_prescricoes_hoje'] = Prescricao.objects.filter(
-            data_criacao__date=timezone.now().date()
+            data_criacao__date=hoje
         ).count()
         context['proximas_administracoes'] = Administracao.objects.filter(
-            data_hora__gte=timezone.now()
+            data_hora__gte=agora
         ).order_by('data_hora')[:5]
+
         return context
 
 # Paciente Views
