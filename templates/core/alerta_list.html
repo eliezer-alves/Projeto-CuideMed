@@ -28,7 +28,9 @@
                                     <th>Recorrência</th>
                                     <th>Período</th>
                                     <th>Status</th>
-                                    <th>Criado em</th>  {# <-- nova coluna #}
+                                    <th>Criado em</th>
+                                    <th>Atualizado em</th>
+                                    <th>Programado para</th>
                                     <th>Ações</th>
                                 </tr>
                             </thead>
@@ -76,6 +78,14 @@
 
                                         <td>
                                             {{ alerta.criado_em|date:"d/m/Y H:i" }}
+                                        </td>
+                                        
+                                        <td>
+                                            {{ alerta.atualizado_em|date:"d/m/Y H:i" }}
+                                        </td>
+                                        
+                                        <td>
+                                            {{ alerta.data_hora|date:"d/m/Y H:i" }}
                                         </td>
 
                                         <td>

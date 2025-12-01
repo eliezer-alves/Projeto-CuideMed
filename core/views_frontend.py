@@ -6,6 +6,13 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
+
+from datetime import timedelta
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
+
 from django.views import View
 from .models import Paciente, Medicamento, Prescricao, Administracao, Alerta, Usuario
 from .forms import PacienteForm, MedicamentoForm, PrescricaoForm, AdministracaoForm, UsuarioLoginForm, AlertaForm, UsuarioForm, UsuarioUpdateForm
@@ -348,3 +355,4 @@ class UsuarioDeleteView(LoginRequiredMixin, DeleteView):
             messages.error(request, 'Você não tem permissão para excluir usuários.')
             return redirect('usuario_list')
         return super().dispatch(request, *args, **kwargs)
+

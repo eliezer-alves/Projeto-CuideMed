@@ -7,6 +7,103 @@
     <title>{% block title %}Sistema de Medicação Hospitalar{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script>
+        (function () {
+            // intervalo de verificação em milissegundos (ajusta se quiser mais rápido)
+            const CHECK_INTERVAL_MS = 15000; // 15 segundos
+            const apiUrl = "{% url 'alertas_pendentes_api' %}";
+
+            // Vamos manter os IDs que já mostramos nesta aba
+            const shownAlertIds = new Set();
+
+            function formatHoraBr(isoString) {
+                try {
+                    const dt = new Date(isoString);
+                    // dd/mm hh:mm
+                    const dia = String(dt.getDate()).padStart(2, '0');
+                    const mes = String(dt.getMonth() + 1).padStart(2, '0');
+                    const hora = String(dt.getHours()).padStart(2, '0');
+                    const min = String(dt.getMinutes()).padStart(2, '0');
+                    return `${dia}/${mes} ${hora}:${min}`;
+                } catch (e) {
+                    return '';
+                }
+            }
+
+            function showAlertaToast(alerta) {
+                const toastEl = document.getElementById('alertaToast');
+                if (!toastEl) return;
+
+                // Preenche o conteúdo
+                document.getElementById('alertaToastPaciente').textContent = alerta.paciente || '';
+                document.getElementById('alertaToastTipo').textContent = alerta.tipo || '';
+                document.getElementById('alertaToastMensagem').textContent = alerta.mensagem || '';
+                document.getElementById('alertaToastHora').textContent = formatHoraBr(alerta.data_hora);
+
+                const medEl = document.getElementById('alertaToastMedicamento');
+                if (alerta.medicamento) {
+                    medEl.textContent = alerta.medicamento;
+                    medEl.classList.remove('d-none');
+                } else {
+                    medEl.textContent = '';
+                    medEl.classList.add('d-none');
+                }
+
+                // Mostra o toast (Bootstrap 5)
+                if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
+                    const toast = bootstrap.Toast.getOrCreateInstance(toastEl, {
+                        autohide: false   // fica até o usuário fechar
+                    });
+                    toast.show();
+                }
+            }
+
+            async function checkAlertasPendentes() {
+                try {
+                    const resp = await fetch(apiUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        cache: 'no-store'
+                    });
+
+                    if (!resp.ok) {
+                        return;
+                    }
+
+                    const data = await resp.json();
+                    if (!data || !Array.isArray(data.alertas)) {
+                        return;
+                    }
+
+                    data.alertas.forEach(alerta => {
+                        // evita repetir o mesmo alerta toda vez que chamar a API
+                        if (!shownAlertIds.has(alerta.id)) {
+                            shownAlertIds.add(alerta.id);
+                            showAlertaToast(alerta);
+                        }
+                    });
+                } catch (e) {
+                    // silencia erros de rede pra não atrapalhar o usuário
+                    console.error('Erro ao buscar alertas pendentes:', e);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                // se não tiver Bootstrap, não tem o que fazer
+                if (typeof bootstrap === 'undefined') {
+                    console.warn('Bootstrap não encontrado. Toasts de alerta não serão exibidos.');
+                    return;
+                }
+
+                // primeira checagem logo que a página carrega
+                checkAlertasPendentes();
+
+                // checagem periódica
+                setInterval(checkAlertasPendentes, CHECK_INTERVAL_MS);
+            });
+        })();
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -78,8 +175,25 @@
         {% endblock %}
     </div>
 
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="alertaToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-danger text-white">
+                <strong class="me-auto" id="alertaToastTitulo">Alerta de Medicação</strong>
+                <small id="alertaToastHora"></small>
+                <button type="button" class="btn-close btn-close-white ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                <div><strong id="alertaToastPaciente"></strong></div>
+                <div class="small mb-1" id="alertaToastTipo"></div>
+                <div class="small text-muted mb-1" id="alertaToastMedicamento"></div>
+                <div id="alertaToastMensagem"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
+
 </body>
 </html>
 
