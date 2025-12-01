@@ -21,9 +21,12 @@ class Usuario(AbstractUser):
     def __str__(self):
         return self.username
     
-    def save(self, *args, **kwargs):
-        self.is_staff = self.tipo_usuario == 'administrador'
-        super().save(*args, **kwargs)
+def save(self, *args, **kwargs):
+    if self.is_superuser:
+        self.is_staff = True
+    else:
+        self.is_staff = (self.tipo_usuario == "administrador")
+    super().save(*args, **kwargs)
 
 class Paciente(models.Model):
     SEXO_CHOICES = [
@@ -127,28 +130,19 @@ class Alerta(models.Model):
         ('outro', 'Outro alerta clínico'),
     ]
 
-    RECORRENCIA_CHOICES = [
-        ('nenhuma', 'Sem recorrência'),
-        ('diaria', 'Diariamente em um horário'),
-        ('semanal', 'Semanalmente em um dia e horário'),
-        ('varias_vezes_dia', 'Várias vezes ao dia'),
+    INTERVALO_CHOICES = [
+        ('4h', 'A cada 4 horas'),
+        ('6h', 'A cada 6 horas'),
+        ('8h', 'A cada 8 horas'),
+        ('12h', 'A cada 12 horas'),
+        ('24h', 'A cada 24 horas'),
+        ('semanal', 'Uma vez por semana'),
     ]
 
-    DIAS_SEMANA = [
-        (0, 'Segunda-feira'),
-        (1, 'Terça-feira'),
-        (2, 'Quarta-feira'),
-        (3, 'Quinta-feira'),
-        (4, 'Sexta-feira'),
-        (5, 'Sábado'),
-        (6, 'Domingo'),
-    ]
-
-    # ————— Tipo e alvo do alerta —————
     tipo_alerta = models.CharField(
         max_length=20,
         choices=TIPO_ALERTA_CHOICES,
-        default='outro',
+        default='prescricao',
     )
 
     paciente = models.ForeignKey(
@@ -157,6 +151,7 @@ class Alerta(models.Model):
         related_name='alertas',
     )
 
+    # Se for alerta ligado a uma prescrição
     prescricao = models.ForeignKey(
         Prescricao,
         on_delete=models.CASCADE,
@@ -167,47 +162,22 @@ class Alerta(models.Model):
 
     mensagem = models.TextField()
 
-    # ————— Janela de atividade —————
-    inicio = models.DateTimeField(
-        default=timezone.now,
-        blank=True,
-    )
-    fim = models.DateTimeField(null=True, blank=True)
+    # Quando o alerta deve disparar (primeira ocorrência)
+    data_hora = models.DateTimeField(default=timezone.now)
 
-    # ————— Recorrência —————
-    recorrencia = models.CharField(
+    # Se vai repetir ou não
+    repetir = models.BooleanField(default=False)
+
+    # Intervalo da repetição (se repetir=True)
+    repetir_intervalo = models.CharField(
         max_length=20,
-        choices=RECORRENCIA_CHOICES,
-        default='nenhuma',
+        choices=INTERVALO_CHOICES,
+        blank=True,
+        null=True,
     )
 
-    # Se diária → um horário fixo no dia
-    hora_diaria = models.TimeField(
-        null=True,
-        blank=True,
-        help_text="Usado quando a recorrência é diária.",
-    )
-
-    # Se semanal → dia da semana + horário
-    dia_semana = models.IntegerField(
-        choices=DIAS_SEMANA,
-        null=True,
-        blank=True,
-        help_text="Usado quando a recorrência é semanal.",
-    )
-    hora_semanal = models.TimeField(
-        null=True,
-        blank=True,
-        help_text="Usado quando a recorrência é semanal.",
-    )
-
-    # Se várias vezes ao dia → lista de horários HH:MM separados por vírgula
-    horarios_multiplos = models.CharField(
-        max_length=255,
-        null=True,
-        blank=True,
-        help_text="Quando for várias vezes ao dia, informe horários no formato HH:MM separados por vírgula (ex: 08:00,14:00,20:30).",
-    )
+    # Ativo / Inativo (status do alerta)
+    ativo = models.BooleanField(default=True)
 
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -220,68 +190,3 @@ class Alerta(models.Model):
         if self.tipo_alerta == 'prescricao' and self.prescricao:
             return f"Alerta de prescrição ({self.prescricao})"
         return f"Alerta para {self.paciente.nome}"
-
-    def clean(self):
-        super().clean()
-
-        # Se for alerta de prescrição, precisa ter prescricao associada
-        if self.tipo_alerta == 'prescricao' and not self.prescricao:
-            # Erro vai direto no campo 'prescricao' no form
-            raise ValidationError({
-                'prescricao': "Selecione uma prescrição para alertas do tipo 'prescrição'."
-            })
-
-        # Se for prescrição + prescrição presente → paciente vem da prescrição
-        if self.tipo_alerta == 'prescricao' and self.prescricao:
-            self.paciente = self.prescricao.paciente
-
-        # Regras de recorrência (essas você já tinha, mantive mesmas):
-        if self.recorrencia == 'nenhuma':
-            self.hora_diaria = None
-            self.dia_semana = None
-            self.hora_semanal = None
-            self.horarios_multiplos = None
-
-        elif self.recorrencia == 'diaria':
-            if not self.hora_diaria:
-                raise ValidationError({
-                    'hora_diaria': "Para recorrência diária, informe o horário diário do alerta."
-                })
-            self.dia_semana = None
-            self.hora_semanal = None
-            self.horarios_multiplos = None
-
-        elif self.recorrencia == 'semanal':
-            if self.dia_semana is None or not self.hora_semanal:
-                raise ValidationError({
-                    'dia_semana': "Informe o dia da semana.",
-                    'hora_semanal': "Informe o horário para o alerta semanal.",
-                })
-            self.hora_diaria = None
-            self.horarios_multiplos = None
-
-        elif self.recorrencia == 'varias_vezes_dia':
-            if not self.horarios_multiplos:
-                raise ValidationError({
-                    'horarios_multiplos': "Para 'várias vezes ao dia', informe ao menos um horário."
-                })
-
-            partes = [p.strip() for p in self.horarios_multiplos.split(',') if p.strip()]
-            from datetime import time
-            for p in partes:
-                try:
-                    h, m = p.split(':')
-                    time(hour=int(h), minute=int(m))
-                except Exception:
-                    raise ValidationError({
-                        'horarios_multiplos': (
-                            "Use horários no formato HH:MM separados por vírgula, "
-                            "por exemplo: 08:00,14:00,20:30."
-                        )
-                    })
-
-            self.hora_diaria = None
-            self.dia_semana = None
-            self.hora_semanal = None
-
-
