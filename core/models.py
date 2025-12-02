@@ -2,17 +2,23 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
-from django.core.exceptions import ValidationError
+
 
 class Usuario(AbstractUser):
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'
+
     TIPO_USUARIO_CHOICES = [
         ('medico', 'Médico'),
         ('enfermeiro', 'Enfermeiro'),
         ('administrador', 'Administrador'),
     ]
-    tipo_usuario = models.CharField(max_length=15, choices=TIPO_USUARIO_CHOICES, default='enfermeiro')
+
+    tipo_usuario = models.CharField(
+        max_length=15,
+        choices=TIPO_USUARIO_CHOICES,
+        default='enfermeiro',
+    )
 
     class Meta:
         verbose_name = "Usuário"
@@ -20,13 +26,19 @@ class Usuario(AbstractUser):
 
     def __str__(self):
         return self.username
-    
-def save(self, *args, **kwargs):
-    if self.is_superuser:
-        self.is_staff = True
-    else:
-        self.is_staff = (self.tipo_usuario == "administrador")
-    super().save(*args, **kwargs)
+
+    def save(self, *args, **kwargs):
+        """
+        Garante a coerência entre tipo_usuario / is_staff / is_superuser.
+        - superuser sempre é staff
+        - admin (tipo_usuario=administrador) também é staff
+        """
+        if self.is_superuser:
+            self.is_staff = True
+        else:
+            self.is_staff = (self.tipo_usuario == "administrador")
+        super().save(*args, **kwargs)
+
 
 class Paciente(models.Model):
     SEXO_CHOICES = [
@@ -51,6 +63,7 @@ class Paciente(models.Model):
     def __str__(self):
         return self.nome
 
+
 class Medicamento(models.Model):
     nome = models.CharField(max_length=255)
     dosagem = models.CharField(max_length=100)
@@ -63,6 +76,7 @@ class Medicamento(models.Model):
     def __str__(self):
         return f"{self.nome} ({self.dosagem})"
 
+
 class Prescricao(models.Model):
     STATUS_CHOICES = [
         ('ativa', 'Ativa'),
@@ -73,7 +87,6 @@ class Prescricao(models.Model):
     paciente = models.ForeignKey(Paciente, on_delete=models.CASCADE)
     medicamento = models.ForeignKey(Medicamento, on_delete=models.CASCADE)
 
-    # médico que prescreveu (usuário logado do tipo médico)
     medico = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,
@@ -105,12 +118,12 @@ class Prescricao(models.Model):
 
     def get_status_badge_class(self):
         mapping = {
-            'ativa': 'bg-success',     # verde
-            'suspensa': 'bg-warning',  # amarelo
-            'encerrada': 'bg-secondary',  # cinza
+            'ativa': 'bg-success',
+            'suspensa': 'bg-warning',
+            'encerrada': 'bg-secondary',
         }
-        # badge padrão se cair em algum status inesperado
         return mapping.get(self.status, 'bg-secondary')
+
 
 class Administracao(models.Model):
     prescricao = models.ForeignKey(Prescricao, on_delete=models.CASCADE)
@@ -123,6 +136,7 @@ class Administracao(models.Model):
 
     def __str__(self):
         return f"Administração de {self.prescricao.medicamento.nome} por {self.usuario.username}"
+
 
 class Alerta(models.Model):
     TIPO_ALERTA_CHOICES = [
@@ -151,7 +165,6 @@ class Alerta(models.Model):
         related_name='alertas',
     )
 
-    # Se for alerta ligado a uma prescrição
     prescricao = models.ForeignKey(
         Prescricao,
         on_delete=models.CASCADE,
@@ -162,13 +175,10 @@ class Alerta(models.Model):
 
     mensagem = models.TextField()
 
-    # Quando o alerta deve disparar (primeira ocorrência)
     data_hora = models.DateTimeField(default=timezone.now)
 
-    # Se vai repetir ou não
     repetir = models.BooleanField(default=False)
 
-    # Intervalo da repetição (se repetir=True)
     repetir_intervalo = models.CharField(
         max_length=20,
         choices=INTERVALO_CHOICES,
@@ -176,7 +186,6 @@ class Alerta(models.Model):
         null=True,
     )
 
-    # Ativo / Inativo (status do alerta)
     ativo = models.BooleanField(default=True)
 
     criado_em = models.DateTimeField(auto_now_add=True)

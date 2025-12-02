@@ -108,6 +108,19 @@ class UsuarioUpdateForm(forms.ModelForm):
             field.widget.attrs.update({'class': 'form-control'})
 
 class AlertaForm(forms.ModelForm):
+    # sobrescreve o campo pra acertar o formato do datetime-local
+    data_hora = forms.DateTimeField(
+        label="Data e hora",
+        widget=forms.DateTimeInput(
+            format='%Y-%m-%dT%H:%M',
+            attrs={
+                'type': 'datetime-local',
+                'class': 'form-control',
+            },
+        ),
+        input_formats=['%Y-%m-%dT%H:%M'],
+    )
+
     class Meta:
         model = Alerta
         fields = [
@@ -127,12 +140,6 @@ class AlertaForm(forms.ModelForm):
                     'class': 'form-control',
                 }
             ),
-            'data_hora': forms.DateTimeInput(
-                attrs={
-                    'type': 'datetime-local',
-                    'class': 'form-control',
-                }
-            ),
             'repetir': forms.CheckboxInput(
                 attrs={
                     'class': 'form-check-input',
@@ -143,18 +150,17 @@ class AlertaForm(forms.ModelForm):
                     'class': 'form-check-input',
                 }
             ),
+            # não define data_hora aqui, porque já foi sobrescrito acima
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # aplica 'form-control' nos campos select/input normais
+        # aplica 'form-control' nos selects/inputs normais que ainda não tenham classe
         for name, field in self.fields.items():
-            if isinstance(field.widget, (forms.CheckboxInput,)):
-                # checkbox já tá com 'form-check-input'
+            if isinstance(field.widget, forms.CheckboxInput):
                 continue
 
-            # se o widget já tiver class (data_hora, mensagem etc), não sobrescreve
             css = field.widget.attrs.get('class', '')
             if 'form-control' not in css and 'form-select' not in css:
                 field.widget.attrs['class'] = (css + ' form-control').strip()
