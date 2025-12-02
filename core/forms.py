@@ -115,32 +115,32 @@ class AlertaForm(forms.ModelForm):
             'paciente',
             'prescricao',
             'mensagem',
-            'inicio',
-            'fim',
-            'recorrencia',
-            'hora_diaria',
-            'dia_semana',
-            'hora_semanal',
-            'horarios_multiplos',
+            'data_hora',
+            'repetir',
+            'repetir_intervalo',
+            'ativo',
         ]
         widgets = {
-            'mensagem': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
-            'inicio': forms.DateTimeInput(
-                attrs={'type': 'datetime-local', 'class': 'form-control'}
-            ),
-            'fim': forms.DateTimeInput(
-                attrs={'type': 'datetime-local', 'class': 'form-control'}
-            ),
-            'hora_diaria': forms.TimeInput(
-                attrs={'type': 'time', 'class': 'form-control'}
-            ),
-            'hora_semanal': forms.TimeInput(
-                attrs={'type': 'time', 'class': 'form-control'}
-            ),
-            'horarios_multiplos': forms.TextInput(
+            'mensagem': forms.Textarea(
                 attrs={
+                    'rows': 3,
                     'class': 'form-control',
-                    'placeholder': 'Ex: 08:00,14:00,20:30',
+                }
+            ),
+            'data_hora': forms.DateTimeInput(
+                attrs={
+                    'type': 'datetime-local',
+                    'class': 'form-control',
+                }
+            ),
+            'repetir': forms.CheckboxInput(
+                attrs={
+                    'class': 'form-check-input',
+                }
+            ),
+            'ativo': forms.CheckboxInput(
+                attrs={
+                    'class': 'form-check-input',
                 }
             ),
         }
@@ -148,12 +148,13 @@ class AlertaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # garante prescrição como opcional no form
-        if 'prescricao' in self.fields:
-            self.fields['prescricao'].required = False
-
-        # Deixa tudo com cara de Bootstrap
+        # aplica 'form-control' nos campos select/input normais
         for name, field in self.fields.items():
-            if isinstance(field.widget, (forms.CheckboxInput, forms.RadioSelect)):
+            if isinstance(field.widget, (forms.CheckboxInput,)):
+                # checkbox já tá com 'form-check-input'
                 continue
-            field.widget.attrs.setdefault('class', 'form-control')
+
+            # se o widget já tiver class (data_hora, mensagem etc), não sobrescreve
+            css = field.widget.attrs.get('class', '')
+            if 'form-control' not in css and 'form-select' not in css:
+                field.widget.attrs['class'] = (css + ' form-control').strip()

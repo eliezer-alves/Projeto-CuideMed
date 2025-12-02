@@ -7,6 +7,178 @@
     <title>{% block title %}Sistema de Medicação Hospitalar{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <script>
+        (function () {
+            // intervalo de verificação em milissegundos
+            const CHECK_INTERVAL_MS = 15000; // 15 segundos
+            const apiUrl = "{% url 'alertas_pendentes_api' %}";
+
+            // IDs de alertas "confirmados" nesta aba
+            const ackedAlertIds = new Set();
+
+            // Última lista de alertas pendentes (segundo a API, menos os confirmados)
+            let latestPending = [];
+
+            // IDs exibidos no modal na abertura atual
+            let currentModalIds = [];
+
+            let modalEl = null;
+            let modalInstance = null;
+
+            function formatHoraBr(isoString) {
+                try {
+                    const dt = new Date(isoString);
+                    const dia = String(dt.getDate()).padStart(2, '0');
+                    const mes = String(dt.getMonth() + 1).padStart(2, '0');
+                    const hora = String(dt.getHours()).padStart(2, '0');
+                    const min = String(dt.getMinutes()).padStart(2, '0');
+                    return `${dia}/${mes} ${hora}:${min}`;
+                } catch (e) {
+                    return '';
+                }
+            }
+
+            function escapeHtml(value) {
+                if (value === null || value === undefined) return '';
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function updateBadge() {
+                const badgeEl = document.getElementById('alertasBadge');
+                if (!badgeEl) return;
+
+                const count = latestPending.length;
+
+                if (count > 0) {
+                    badgeEl.textContent = count;
+                    badgeEl.classList.remove('d-none');
+                } else {
+                    badgeEl.classList.add('d-none');
+                }
+            }
+
+            function showAlertasModal(alertas) {
+                if (!alertas.length) return;
+
+                const listaEl = document.getElementById('alertaModalLista');
+                if (!modalEl || !listaEl) return;
+
+                currentModalIds = alertas.map(a => a.id);
+
+                const html = alertas.map(alerta => {
+                    const paciente = escapeHtml(alerta.paciente || '');
+                    const tipo = escapeHtml(alerta.tipo || '');
+                    const mensagem = escapeHtml(alerta.mensagem || '');
+                    const med = escapeHtml(alerta.medicamento || '');
+                    const horario = formatHoraBr(alerta.data_hora);
+
+                    return `
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div>
+                                    <strong class="d-block">${paciente}</strong>
+                                    ${tipo ? `<span class="badge bg-primary">${tipo}</span>` : ''}
+                                </div>
+                                <small class="text-muted">${horario}</small>
+                            </div>
+                            ${med ? `<div class="small text-muted mb-1">Medicação: ${med}</div>` : ''}
+                            ${mensagem ? `<div>${mensagem}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                listaEl.innerHTML = html;
+
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modalInstance.show();
+                }
+            }
+
+            async function checkAlertasPendentes() {
+                try {
+                    const resp = await fetch(apiUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        cache: 'no-store'
+                    });
+
+                    if (!resp.ok) {
+                        return;
+                    }
+
+                    const data = await resp.json();
+                    if (!data || !Array.isArray(data.alertas)) {
+                        return;
+                    }
+
+                    // Confia na API: tudo que ela mandar é "pendente"
+                    // Aqui só removemos os já confirmados nesta aba
+                    const pendentes = data.alertas.filter(a => !ackedAlertIds.has(a.id));
+
+                    latestPending = pendentes;
+                    updateBadge();
+                } catch (e) {
+                    console.error('Erro ao buscar alertas pendentes:', e);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                if (typeof bootstrap === 'undefined') {
+                    console.warn('Bootstrap não encontrado. Alertas não serão exibidos em modal.');
+                    return;
+                }
+
+                modalEl = document.getElementById('alertaModal');
+
+                if (!modalEl) {
+                    console.warn('Elemento #alertaModal não encontrado no DOM.');
+                    return;
+                }
+
+                // Quando o modal é fechado, marca os alertas mostrados como confirmados
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    if (currentModalIds.length) {
+                        currentModalIds.forEach(id => ackedAlertIds.add(id));
+                        currentModalIds = [];
+
+                        // Remove confirmados da lista pendente
+                        latestPending = latestPending.filter(a => !ackedAlertIds.has(a.id));
+                        updateBadge();
+                    }
+                });
+
+                // Clique na badge abre o modal com os alertas atuais
+                const badgeEl = document.getElementById('alertasBadge');
+                if (badgeEl) {
+                    badgeEl.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (latestPending.length > 0) {
+                            showAlertasModal(latestPending);
+                        }
+                    });
+                }
+
+                // primeira checagem logo que a página carrega
+                checkAlertasPendentes();
+
+                // checagem periódica
+                setInterval(checkAlertasPendentes, CHECK_INTERVAL_MS);
+            });
+        })();
+    </script>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -33,8 +205,14 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'administracao_list' %}">Administração</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item position-relative">
                             <a class="nav-link" href="{% url 'alerta_list' %}">Alertas</a>
+                            <span
+                                id="alertasBadge"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                                style="cursor: pointer;margin-top: 5px;">
+                                0
+                            </span>
                         </li>
 
                         {% if user.is_superuser or user.is_staff %}
@@ -78,8 +256,34 @@
         {% endblock %}
     </div>
 
+    {# Modal global para exibir TODOS os alertas pendentes #}
+    <div class="modal fade" id="alertaModal" tabindex="-1" aria-labelledby="alertaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="alertaModalLabel">Alertas de Medicação</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        Os seguintes alertas estão pendentes:
+                    </p>
+                    <div id="alertaModalLista" class="max-vh-50 overflow-auto">
+                        {# Conteúdo gerado via JavaScript #}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Bootstrap e JS global #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
+
 </body>
 </html>
-

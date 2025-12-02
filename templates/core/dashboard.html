@@ -11,6 +11,7 @@
     </div>
 </div>
 
+{# CARDS GERAIS #}
 <div class="row mb-4">
     <div class="col-md-3">
         <div class="card text-white bg-primary">
@@ -40,41 +41,107 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-white bg-warning">
+        <div class="card text-white bg-secondary">
             <div class="card-body">
-                <h5 class="card-title">Alertas</h5>
-                <h2>{{ alertas_recentes|length }}</h2>
-                <p class="card-text">Alertas recentes</p>
+                <h5 class="card-title">Alertas Hoje</h5>
+                <h2>{{ alertas_dia }}</h2>
+                <p class="card-text">Alertas ativos ao longo do dia</p>
+            </div>
+        </div>
+    </div>
+</div>
+<br/>
+<br/>
+{# SEÇÃO DE CARTÕES DE ALERTAS #}
+<div class="col-12">
+    <h1>Alertas</h1>
+    <p class="lead">Confira aqui os alertas ativos para os próximos períodos</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-2 mb-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <h6 class="card-title mb-1">Próx. 15 min</h6>
+                <h3 class="mb-0">{{ alertas_15min }}</h3>
+                <small>Maior urgência</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card text-dark bg-warning">
+            <div class="card-body">
+                <h6 class="card-title mb-1">Próx. 30 min</h6>
+                <h3 class="mb-0">{{ alertas_30min }}</h3>
+                <small>Chegando em breve</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h6 class="card-title mb-1">Próx. 1 hora</h6>
+                <h3 class="mb-0">{{ alertas_1h }}</h3>
+                <small>No próximo período</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2 mb-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h6 class="card-title mb-1">Próx. 4 horas</h6>
+                <h3 class="mb-0">{{ alertas_4h }}</h3>
+                <small>Ao longo do turno</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card text-white bg-secondary">
+            <div class="card-body">
+                <h6 class="card-title mb-1">Alertas do dia</h6>
+                <h3 class="mb-0">{{ alertas_dia }}</h3>
+                <small>Somente alertas ativos de hoje</small>
             </div>
         </div>
     </div>
 </div>
 
+{# LISTAS: PRÓXIMOS ALERTAS / ADMINISTRAÇÕES #}
 <div class="row">
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
-                <h5>Alertas Recentes</h5>
+                <h5>Próximos Alertas</h5>
             </div>
             <div class="card-body">
-                {% if alertas_recentes %}
+                {% if proximos_alertas %}
                     <ul class="list-group list-group-flush">
-                        {% for alerta in alertas_recentes %}
+                        {% for alerta in proximos_alertas %}
                             <li class="list-group-item">
-                                <strong>{{ alerta.paciente.nome }}</strong> - {{ alerta.tipo_alerta }}
+                                <strong>{{ alerta.paciente.nome }}</strong>
+                                <span class="badge bg-primary ms-2">
+                                    {{ alerta.get_tipo_alerta_display }}
+                                </span>
                                 <br>
                                 <small class="text-muted">
-                                    Início: {{ alerta.inicio|date:"d/m/Y H:i" }}
+                                    {{ alerta.data_hora|date:"d/m/Y H:i" }}
                                 </small>
+                                {% if alerta.prescricao %}
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ alerta.prescricao.medicamento.nome }}
+                                    </small>
+                                {% endif %}
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="text-muted">Nenhum alerta recente.</p>
+                    <p class="text-muted mb-0">Nenhum alerta previsto nos próximos horários.</p>
                 {% endif %}
             </div>
         </div>
     </div>
+
     <div class="col-md-6">
         <div class="card">
             <div class="card-header">
@@ -85,13 +152,17 @@
                     <ul class="list-group list-group-flush">
                         {% for admin in proximas_administracoes %}
                             <li class="list-group-item">
-                                <strong>{{ admin.prescricao.paciente.nome }}</strong> - {{ admin.prescricao.medicamento.nome }}
-                                <br><small class="text-muted">{{ admin.data_hora|date:"d/m/Y H:i" }}</small>
+                                <strong>{{ admin.prescricao.paciente.nome }}</strong>
+                                - {{ admin.prescricao.medicamento.nome }}
+                                <br>
+                                <small class="text-muted">
+                                    {{ admin.data_hora|date:"d/m/Y H:i" }}
+                                </small>
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p class="text-muted">Nenhuma administração próxima.</p>
+                    <p class="text-muted mb-0">Nenhuma administração próxima.</p>
                 {% endif %}
             </div>
         </div>

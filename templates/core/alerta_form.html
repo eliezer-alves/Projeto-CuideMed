@@ -36,20 +36,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Recorrência -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.recorrencia.id_for_label }}" class="form-label">
-                                {{ form.recorrencia.label }}
-                                {% if form.recorrencia.field.required %}
-                                    <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            {{ form.recorrencia }}
-                            {% if form.recorrencia.errors %}
-                                <div class="text-danger">{{ form.recorrencia.errors }}</div>
-                            {% endif %}
-                        </div>
-
                         <!-- Paciente -->
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.paciente.id_for_label }}" class="form-label">
@@ -78,97 +64,64 @@
                             {% endif %}
                         </div>
 
-                        <!-- Início -->
+                        <!-- Data/Hora do alerta -->
                         <div class="col-md-6 mb-3">
-                            <label for="{{ form.inicio.id_for_label }}" class="form-label">
-                                {{ form.inicio.label }}
-                                {% if form.inicio.field.required %}
+                            <label for="{{ form.data_hora.id_for_label }}" class="form-label">
+                                {{ form.data_hora.label }}
+                                {% if form.data_hora.field.required %}
                                     <span class="text-danger">*</span>
                                 {% endif %}
                             </label>
-                            {{ form.inicio }}
-                            {% if form.inicio.errors %}
-                                <div class="text-danger">{{ form.inicio.errors }}</div>
+                            {{ form.data_hora }}
+                            {% if form.data_hora.errors %}
+                                <div class="text-danger">{{ form.data_hora.errors }}</div>
                             {% endif %}
                         </div>
 
-                        <!-- Fim -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.fim.id_for_label }}" class="form-label">
-                                {{ form.fim.label }}
-                                {% if form.fim.field.required %}
-                                    <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            {{ form.fim }}
-                            {% if form.fim.errors %}
-                                <div class="text-danger">{{ form.fim.errors }}</div>
+                        <!-- Repetir -->
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check mt-4">
+                                {{ form.repetir }}
+                                <label for="{{ form.repetir.id_for_label }}" class="form-check-label">
+                                    {{ form.repetir.label }}
+                                    {% if form.repetir.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% if form.repetir.errors %}
+                                <div class="text-danger">{{ form.repetir.errors }}</div>
                             {% endif %}
                         </div>
 
-                        <!-- Hora diária -->
-                        <div class="col-md-6 mb-3">
-                            <label for="{{ form.hora_diaria.id_for_label }}" class="form-label">
-                                {{ form.hora_diaria.label }}
-                                {% if form.hora_diaria.field.required %}
+                        <!-- Intervalo de repetição -->
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.repetir_intervalo.id_for_label }}" class="form-label">
+                                {{ form.repetir_intervalo.label }}
+                                {% if form.repetir_intervalo.field.required %}
                                     <span class="text-danger">*</span>
                                 {% endif %}
                             </label>
-                            {{ form.hora_diaria }}
-                            {% if form.hora_diaria.errors %}
-                                <div class="text-danger">{{ form.hora_diaria.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted d-block">
-                                Usado quando a recorrência for diária.
-                            </small>
-                        </div>
-
-                        <!-- Dia da semana -->
-                        <div class="col-md-3 mb-3">
-                            <label for="{{ form.dia_semana.id_for_label }}" class="form-label">
-                                {{ form.dia_semana.label }}
-                                {% if form.dia_semana.field.required %}
-                                    <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            {{ form.dia_semana }}
-                            {% if form.dia_semana.errors %}
-                                <div class="text-danger">{{ form.dia_semana.errors }}</div>
-                            {% endif %}
-                            <small class="text-muted d-block">
-                                Usado em alertas semanais.
-                            </small>
-                        </div>
-
-                        <!-- Hora semanal -->
-                        <div class="col-md-3 mb-3">
-                            <label for="{{ form.hora_semanal.id_for_label }}" class="form-label">
-                                {{ form.hora_semanal.label }}
-                                {% if form.hora_semanal.field.required %}
-                                    <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            {{ form.hora_semanal }}
-                            {% if form.hora_semanal.errors %}
-                                <div class="text-danger">{{ form.hora_semanal.errors }}</div>
+                            {{ form.repetir_intervalo }}
+                            {% if form.repetir_intervalo.errors %}
+                                <div class="text-danger">{{ form.repetir_intervalo.errors }}</div>
                             {% endif %}
                         </div>
 
-                        <!-- Horários múltiplos -->
-                        <div class="col-md-12 mb-3">
-                            <label for="{{ form.horarios_multiplos.id_for_label }}" class="form-label">
-                                {{ form.horarios_multiplos.label }}
-                                {% if form.horarios_multiplos.field.required %}
-                                    <span class="text-danger">*</span>
-                                {% endif %}
-                            </label>
-                            {{ form.horarios_multiplos }}
-                            {% if form.horarios_multiplos.errors %}
-                                <div class="text-danger">{{ form.horarios_multiplos.errors }}</div>
+                        <!-- Ativo -->
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check mt-4">
+                                {{ form.ativo }}
+                                <label for="{{ form.ativo.id_for_label }}" class="form-check-label">
+                                    {{ form.ativo.label }}
+                                    {% if form.ativo.field.required %}
+                                        <span class="text-danger">*</span>
+                                    {% endif %}
+                                </label>
+                            </div>
+                            {% if form.ativo.errors %}
+                                <div class="text-danger">{{ form.ativo.errors }}</div>
                             {% endif %}
-                            <small class="text-muted">
-                                Use o formato <strong>HH:MM,HH:MM,...</strong> (por exemplo: <code>08:00,14:00,20:30</code>).
-                            </small>
                         </div>
 
                         <!-- Mensagem -->

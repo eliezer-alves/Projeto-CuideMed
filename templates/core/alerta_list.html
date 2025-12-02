@@ -19,85 +19,80 @@
             <div class="card-body">
                 {% if alertas %}
                     <div class="table-responsive">
-                        <table class="table table-striped align-middle">
+                        <table class="table table-striped">
                             <thead>
                                 <tr>
-                                    <th>Início</th>
                                     <th>Paciente</th>
                                     <th>Tipo</th>
                                     <th>Prescrição</th>
                                     <th>Recorrência</th>
-                                    <th>Mensagem</th>
-                                    <th class="text-end">Ações</th>
+                                    <th>Período</th>
+                                    <th>Status</th>
+                                    <th>Criado em</th>
+                                    <th>Atualizado em</th>
+                                    <th>Programado para</th>
+                                    <th>Ações</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for alerta in alertas %}
                                     <tr>
-                                        <!-- Início do alerta -->
-                                        <td>
-                                            {{ alerta.inicio|date:"d/m/Y H:i" }}
-                                            {% if alerta.fim %}
-                                                <br>
-                                                <small class="text-muted">
-                                                    até {{ alerta.fim|date:"d/m/Y H:i" }}
-                                                </small>
-                                            {% endif %}
-                                        </td>
-
-                                        <!-- Paciente -->
                                         <td>{{ alerta.paciente.nome }}</td>
 
-                                        <!-- Tipo de alerta -->
-                                        <td>
-                                            <span class="badge bg-primary">
-                                                {{ alerta.get_tipo_alerta_display }}
-                                            </span>
-                                        </td>
+                                        <td>{{ alerta.get_tipo_alerta_display }}</td>
 
-                                        <!-- Prescrição vinculada -->
                                         <td>
                                             {% if alerta.prescricao %}
-                                                <strong>{{ alerta.prescricao.medicamento.nome }}</strong><br>
-                                                <small class="text-muted">
-                                                    Dose: {{ alerta.prescricao.dose }},
-                                                    {{ alerta.prescricao.frequencia }}
-                                                </small>
+                                                {{ alerta.prescricao.medicamento.nome }}
                                             {% else %}
                                                 <span class="text-muted">—</span>
                                             {% endif %}
                                         </td>
 
-                                        <!-- Recorrência -->
                                         <td>
-                                            <span class="badge bg-light text-dark">
-                                                {{ alerta.get_recorrencia_display }}
-                                            </span>
-                                            <br>
-                                            <small class="text-muted">
-                                                {% if alerta.recorrencia == 'diario' and alerta.hora_diaria %}
-                                                    Todos os dias às {{ alerta.hora_diaria|time:"H:i" }}
-                                                {% elif alerta.recorrencia == 'semanal' and alerta.dia_semana and alerta.hora_semanal %}
-                                                    {{ alerta.get_dia_semana_display }} às {{ alerta.hora_semanal|time:"H:i" }}
-                                                {% elif alerta.recorrencia == 'multiplos' and alerta.horarios_multiplos %}
-                                                    Horários: {{ alerta.horarios_multiplos }}
-                                                {% endif %}
-                                            </small>
+                                            {% if alerta.recorrente %}
+                                                <span class="badge bg-info">
+                                                    Diário {{ alerta.hora_fixa|time:"H:i" }}
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Pontual</span>
+                                            {% endif %}
                                         </td>
 
-                                        <!-- Mensagem -->
-                                        <td style="max-width: 320px;">
-                                            {{ alerta.mensagem|truncatechars:80 }}
+                                        <td>
+                                            {{ alerta.inicio|date:"d/m/Y H:i" }}
+                                            {% if alerta.fim %}
+                                                <br><small class="text-muted">
+                                                    até {{ alerta.fim|date:"d/m/Y H:i" }}
+                                                </small>
+                                            {% endif %}
                                         </td>
 
-                                        <!-- Ações -->
-                                        <td class="text-end">
-                                            <a href="{% url 'alerta_update' alerta.pk %}"
-                                               class="btn btn-sm btn-warning me-1">
+                                        <td>
+                                            {% if alerta.ativo %}
+                                                <span class="badge bg-success">Ativo</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Inativo</span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td>
+                                            {{ alerta.criado_em|date:"d/m/Y H:i" }}
+                                        </td>
+                                        
+                                        <td>
+                                            {{ alerta.atualizado_em|date:"d/m/Y H:i" }}
+                                        </td>
+                                        
+                                        <td>
+                                            {{ alerta.data_hora|date:"d/m/Y H:i" }}
+                                        </td>
+
+                                        <td>
+                                            <a href="{% url 'alerta_update' alerta.pk %}" class="btn btn-sm btn-warning">
                                                 Editar
                                             </a>
-                                            <a href="{% url 'alerta_delete' alerta.pk %}"
-                                               class="btn btn-sm btn-danger">
+                                            <a href="{% url 'alerta_delete' alerta.pk %}" class="btn btn-sm btn-danger">
                                                 Excluir
                                             </a>
                                         </td>
