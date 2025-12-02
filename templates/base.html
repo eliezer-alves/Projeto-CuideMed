@@ -7,19 +7,28 @@
     <title>{% block title %}Sistema de Medicação Hospitalar{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
     <script>
         (function () {
-            // intervalo de verificação em milissegundos (ajusta se quiser mais rápido)
+            // intervalo de verificação em milissegundos
             const CHECK_INTERVAL_MS = 15000; // 15 segundos
             const apiUrl = "{% url 'alertas_pendentes_api' %}";
 
-            // Vamos manter os IDs que já mostramos nesta aba
-            const shownAlertIds = new Set();
+            // IDs de alertas "confirmados" nesta aba
+            const ackedAlertIds = new Set();
+
+            // Última lista de alertas pendentes (segundo a API, menos os confirmados)
+            let latestPending = [];
+
+            // IDs exibidos no modal na abertura atual
+            let currentModalIds = [];
+
+            let modalEl = null;
+            let modalInstance = null;
 
             function formatHoraBr(isoString) {
                 try {
                     const dt = new Date(isoString);
-                    // dd/mm hh:mm
                     const dia = String(dt.getDate()).padStart(2, '0');
                     const mes = String(dt.getMonth() + 1).padStart(2, '0');
                     const hora = String(dt.getHours()).padStart(2, '0');
@@ -30,31 +39,68 @@
                 }
             }
 
-            function showAlertaToast(alerta) {
-                const toastEl = document.getElementById('alertaToast');
-                if (!toastEl) return;
+            function escapeHtml(value) {
+                if (value === null || value === undefined) return '';
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
 
-                // Preenche o conteúdo
-                document.getElementById('alertaToastPaciente').textContent = alerta.paciente || '';
-                document.getElementById('alertaToastTipo').textContent = alerta.tipo || '';
-                document.getElementById('alertaToastMensagem').textContent = alerta.mensagem || '';
-                document.getElementById('alertaToastHora').textContent = formatHoraBr(alerta.data_hora);
+            function updateBadge() {
+                const badgeEl = document.getElementById('alertasBadge');
+                if (!badgeEl) return;
 
-                const medEl = document.getElementById('alertaToastMedicamento');
-                if (alerta.medicamento) {
-                    medEl.textContent = alerta.medicamento;
-                    medEl.classList.remove('d-none');
+                const count = latestPending.length;
+
+                if (count > 0) {
+                    badgeEl.textContent = count;
+                    badgeEl.classList.remove('d-none');
                 } else {
-                    medEl.textContent = '';
-                    medEl.classList.add('d-none');
+                    badgeEl.classList.add('d-none');
                 }
+            }
 
-                // Mostra o toast (Bootstrap 5)
-                if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-                    const toast = bootstrap.Toast.getOrCreateInstance(toastEl, {
-                        autohide: false   // fica até o usuário fechar
+            function showAlertasModal(alertas) {
+                if (!alertas.length) return;
+
+                const listaEl = document.getElementById('alertaModalLista');
+                if (!modalEl || !listaEl) return;
+
+                currentModalIds = alertas.map(a => a.id);
+
+                const html = alertas.map(alerta => {
+                    const paciente = escapeHtml(alerta.paciente || '');
+                    const tipo = escapeHtml(alerta.tipo || '');
+                    const mensagem = escapeHtml(alerta.mensagem || '');
+                    const med = escapeHtml(alerta.medicamento || '');
+                    const horario = formatHoraBr(alerta.data_hora);
+
+                    return `
+                        <div class="border rounded-3 p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div>
+                                    <strong class="d-block">${paciente}</strong>
+                                    ${tipo ? `<span class="badge bg-primary">${tipo}</span>` : ''}
+                                </div>
+                                <small class="text-muted">${horario}</small>
+                            </div>
+                            ${med ? `<div class="small text-muted mb-1">Medicação: ${med}</div>` : ''}
+                            ${mensagem ? `<div>${mensagem}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                listaEl.innerHTML = html;
+
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
                     });
-                    toast.show();
+                    modalInstance.show();
                 }
             }
 
@@ -76,24 +122,53 @@
                         return;
                     }
 
-                    data.alertas.forEach(alerta => {
-                        // evita repetir o mesmo alerta toda vez que chamar a API
-                        if (!shownAlertIds.has(alerta.id)) {
-                            shownAlertIds.add(alerta.id);
-                            showAlertaToast(alerta);
-                        }
-                    });
+                    // Confia na API: tudo que ela mandar é "pendente"
+                    // Aqui só removemos os já confirmados nesta aba
+                    const pendentes = data.alertas.filter(a => !ackedAlertIds.has(a.id));
+
+                    latestPending = pendentes;
+                    updateBadge();
                 } catch (e) {
-                    // silencia erros de rede pra não atrapalhar o usuário
                     console.error('Erro ao buscar alertas pendentes:', e);
                 }
             }
 
             document.addEventListener('DOMContentLoaded', function () {
-                // se não tiver Bootstrap, não tem o que fazer
                 if (typeof bootstrap === 'undefined') {
-                    console.warn('Bootstrap não encontrado. Toasts de alerta não serão exibidos.');
+                    console.warn('Bootstrap não encontrado. Alertas não serão exibidos em modal.');
                     return;
+                }
+
+                modalEl = document.getElementById('alertaModal');
+
+                if (!modalEl) {
+                    console.warn('Elemento #alertaModal não encontrado no DOM.');
+                    return;
+                }
+
+                // Quando o modal é fechado, marca os alertas mostrados como confirmados
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    if (currentModalIds.length) {
+                        currentModalIds.forEach(id => ackedAlertIds.add(id));
+                        currentModalIds = [];
+
+                        // Remove confirmados da lista pendente
+                        latestPending = latestPending.filter(a => !ackedAlertIds.has(a.id));
+                        updateBadge();
+                    }
+                });
+
+                // Clique na badge abre o modal com os alertas atuais
+                const badgeEl = document.getElementById('alertasBadge');
+                if (badgeEl) {
+                    badgeEl.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (latestPending.length > 0) {
+                            showAlertasModal(latestPending);
+                        }
+                    });
                 }
 
                 // primeira checagem logo que a página carrega
@@ -130,8 +205,14 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'administracao_list' %}">Administração</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item position-relative">
                             <a class="nav-link" href="{% url 'alerta_list' %}">Alertas</a>
+                            <span
+                                id="alertasBadge"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"
+                                style="cursor: pointer;margin-top: 5px;">
+                                0
+                            </span>
                         </li>
 
                         {% if user.is_superuser or user.is_staff %}
@@ -175,25 +256,34 @@
         {% endblock %}
     </div>
 
-    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
-        <div id="alertaToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-danger text-white">
-                <strong class="me-auto" id="alertaToastTitulo">Alerta de Medicação</strong>
-                <small id="alertaToastHora"></small>
-                <button type="button" class="btn-close btn-close-white ms-2 mb-1" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                <div><strong id="alertaToastPaciente"></strong></div>
-                <div class="small mb-1" id="alertaToastTipo"></div>
-                <div class="small text-muted mb-1" id="alertaToastMedicamento"></div>
-                <div id="alertaToastMensagem"></div>
+    {# Modal global para exibir TODOS os alertas pendentes #}
+    <div class="modal fade" id="alertaModal" tabindex="-1" aria-labelledby="alertaModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="alertaModalLabel">Alertas de Medicação</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        Os seguintes alertas estão pendentes:
+                    </p>
+                    <div id="alertaModalLista" class="max-vh-50 overflow-auto">
+                        {# Conteúdo gerado via JavaScript #}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                        Confirmar
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
+    {# Bootstrap e JS global #}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/main.js' %}"></script>
 
 </body>
 </html>
-

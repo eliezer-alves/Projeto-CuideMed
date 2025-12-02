@@ -60,6 +60,8 @@ def alertas_pendentes_api(request):
     agora = timezone.now()
     janela_futuro = agora + timedelta(minutes=5)
 
+    print(agora, janela_futuro)
+
     alertas = (
         Alerta.objects.filter(
             ativo=True,
