@@ -1,92 +1,95 @@
 from datetime import timedelta
 
-from django.http import JsonResponse
 from django.utils import timezone
-from django.views.decorators.http import require_GET
-from django.contrib.auth.decorators import login_required
 
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from .models import Usuario, Paciente, Medicamento, Prescricao, Administracao, Alerta
 from .serializers import (
-    UsuarioSerializer, PacienteSerializer, MedicamentoSerializer,
-    PrescricaoSerializer, AdministracaoSerializer, AlertaSerializer,
+    UsuarioSerializer,
+    PacienteSerializer,
+    MedicamentoSerializer,
+    PrescricaoSerializer,
+    AdministracaoSerializer,
+    AlertaSerializer,
 )
+
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 class PacienteViewSet(viewsets.ModelViewSet):
     queryset = Paciente.objects.all()
     serializer_class = PacienteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 class MedicamentoViewSet(viewsets.ModelViewSet):
     queryset = Medicamento.objects.all()
     serializer_class = MedicamentoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 class PrescricaoViewSet(viewsets.ModelViewSet):
     queryset = Prescricao.objects.all()
     serializer_class = PrescricaoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 class AdministracaoViewSet(viewsets.ModelViewSet):
     queryset = Administracao.objects.all()
     serializer_class = AdministracaoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
 
 class AlertaViewSet(viewsets.ModelViewSet):
     queryset = Alerta.objects.all()
     serializer_class = AlertaSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-from django.views.generic import CreateView
-from django.urls import reverse_lazy
-from django.contrib import messages
-from .models import Alerta
-from .forms import AlertaForm
-from django.contrib.auth.mixins import LoginRequiredMixin
 
-class AlertaCreateView(LoginRequiredMixin, CreateView):
-    model = Alerta
-    form_class = AlertaForm
-    template_name = 'core/alerta_form.html'
-    success_url = reverse_lazy('alerta_list')
+class AlertasPendentesAPIView(APIView):
+    """
+    Retorna alertas ativos cujo horário está dentro da janela dos próximos 5 minutos.
 
-    def form_valid(self, form):
-        messages.success(self.request, 'Alerta cadastrado com sucesso!')
-        return super().form_valid(form)
+    Usado pelo frontend para mostrar badge/modal de alertas pendentes.
+    """
+    permission_classes = [permissions.IsAuthenticated]
 
-@login_required
-@require_GET
-def alertas_pendentes_api(request):
-    agora = timezone.now()
-    janela_futuro = agora + timedelta(minutes=5)
+    def get(self, request, format=None):
+        agora = timezone.now()
+        janela_futuro = agora + timedelta(minutes=5)
 
-    print(agora, janela_futuro)
-
-    alertas = (
-        Alerta.objects.filter(
-            ativo=True,
-            data_hora__gte=agora,
-            data_hora__lte=janela_futuro,
-        )
-        .select_related('paciente', 'prescricao__medicamento')
-        .order_by('data_hora')
-    )
-    
-    data = []
-    for alerta in alertas:
-        data.append(
-            {
-                "id": alerta.id,
-                "paciente": alerta.paciente.nome,
-                "tipo": alerta.get_tipo_alerta_display(),
-                "mensagem": alerta.mensagem,
-                "data_hora": alerta.data_hora.isoformat(),
-                "medicamento": (
-                    alerta.prescricao.medicamento.nome
-                    if alerta.prescricao and alerta.prescricao.medicamento
-                    else None
-                ),
-            }
+        alertas = (
+            Alerta.objects.filter(
+                ativo=True,
+                data_hora__gte=agora,
+                data_hora__lte=janela_futuro,
+            )
+            .select_related('paciente', 'prescricao__medicamento')
+            .order_by('data_hora')
         )
 
-    return JsonResponse({"alertas": data})
+        data = []
+        for alerta in alertas:
+            data.append(
+                {
+                    "id": alerta.id,
+                    "paciente": alerta.paciente.nome,
+                    "tipo": alerta.get_tipo_alerta_display(),
+                    "mensagem": alerta.mensagem,
+                    "data_hora": alerta.data_hora.isoformat(),
+                    "medicamento": (
+                        alerta.prescricao.medicamento.nome
+                        if alerta.prescricao and alerta.prescricao.medicamento
+                        else None
+                    ),
+                }
+            )
+
+        return Response({"alertas": data})

@@ -1,4 +1,3 @@
-# core/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
@@ -9,7 +8,7 @@ from .views import (
     PrescricaoViewSet,
     AdministracaoViewSet,
     AlertaViewSet,
-    alertas_pendentes_api,
+    AlertasPendentesAPIView,
 )
 
 router = DefaultRouter()
@@ -21,8 +20,8 @@ router.register(r'administracoes', AdministracaoViewSet)
 router.register(r'alertas', AlertaViewSet)
 
 urlpatterns = [
-    # endpoint custom de alertas pendentes 
-    path('api/alertas/pendentes/', alertas_pendentes_api, name='alertas_pendentes_api'),
+    # endpoint custom de alertas pendentes
+    path('api/alertas/pendentes/', AlertasPendentesAPIView.as_view(), name='alertas_pendentes_api'),
 
     # demais endpoints REST (ViewSets)
     path('api/', include(router.urls)),
